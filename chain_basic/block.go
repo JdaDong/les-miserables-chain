@@ -32,6 +32,7 @@ func NewBlock(data string, preBlockHash []byte) *Block {
 		BlockPreHash:     preBlockHash,
 		BlockData:        []byte(data),
 		BlockCurrentHash: []byte{},
+		BlockNonce:       0,
 	}
 	block.SetHash()
 	return block
