@@ -1,9 +1,6 @@
 package chain_basic
 
 import (
-	"bytes"
-	"crypto/sha256"
-	"strconv"
 	"time"
 )
 
@@ -16,14 +13,14 @@ type Block struct {
 	BlockNonce       int64
 }
 
-//区块hash计算
-func (block *Block) SetHash() {
-	timeString := strconv.FormatInt(block.BlockTimestamp, 10)
-	timestamp := []byte(timeString)
-	headers := bytes.Join([][]byte{block.BlockPreHash, block.BlockData, timestamp}, []byte{})
-	hash := sha256.Sum256(headers)
-	block.BlockCurrentHash = hash[:]
-}
+////区块hash计算
+//func (block *Block) SetHash() {
+//	timeString := strconv.FormatInt(block.BlockTimestamp, 10)
+//	timestamp := []byte(timeString)
+//	headers := bytes.Join([][]byte{block.BlockPreHash, block.BlockData, timestamp}, []byte{})
+//	hash := sha256.Sum256(headers)
+//	block.BlockCurrentHash = hash[:]
+//}
 
 //生成区块
 func NewBlock(data string, preBlockHash []byte) *Block {
@@ -34,7 +31,10 @@ func NewBlock(data string, preBlockHash []byte) *Block {
 		BlockCurrentHash: []byte{},
 		BlockNonce:       0,
 	}
-	block.SetHash()
+	pow := NewProof(block)
+	nonce, hash := pow.ProofWork()
+	block.BlockNonce = nonce
+	block.BlockCurrentHash = hash[:]
 	return block
 }
 
