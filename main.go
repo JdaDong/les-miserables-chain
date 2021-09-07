@@ -19,5 +19,6 @@ func main() {
 		fmt.Printf("父区块：%x\n", block.BlockPreHash)
 		fmt.Printf("当前区块：%x\n", block.BlockCurrentHash)
 		fmt.Printf("Data：%s\n\n", string(block.BlockData))
+		fmt.Printf("Nonce: %d\n", block.BlockNonce)
 	}
 }

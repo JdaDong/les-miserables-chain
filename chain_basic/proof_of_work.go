@@ -10,7 +10,7 @@ import (
 )
 
 const (
-	targetOffset = 20            //难度偏移量
+	targetOffset = 30            //难度偏移量
 	maxNonce     = math.MaxInt64 //最大nonce值
 )
 
@@ -67,4 +67,18 @@ func (pow *ProofOfWork) ProofWork() (int64, []byte) {
 	}
 	fmt.Println("\n\n")
 	return nonce, hash[:]
+}
+
+//验证nonce值
+func (pow *ProofOfWork) Validate() bool {
+
+	var hashInt big.Int
+
+	data := pow.prepareData(pow.block.BlockNonce)
+	hash := sha256.Sum256(data)
+	hashInt.SetBytes(hash[:])
+
+	isValid := hashInt.Cmp(pow.target) == -1
+
+	return isValid
 }
