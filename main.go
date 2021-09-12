@@ -2,11 +2,11 @@ package main
 
 import (
 	"fmt"
-	"les-miserables-chain/chain_basic"
+	"les-miserables-chain/chain"
 )
 
 func main() {
-	blockchain := chain_basic.NewBlockChain()
+	blockchain := chain.NewBlockChain()
 	blockchain.AddBlock("Send 20 lmc token To Levy From Genesis")
 	blockchain.AddBlock("Send 20 lmc token To Levy From Genesis")
 	blockchain.AddBlock("Send 20 lmc token To Levy From Genesis")

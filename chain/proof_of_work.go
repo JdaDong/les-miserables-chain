@@ -1,4 +1,4 @@
-package chain_basic
+package chain
 
 import (
 	"bytes"
