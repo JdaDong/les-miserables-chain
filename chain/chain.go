@@ -1,7 +1,11 @@
 package chain
 
+import "github.com/boltdb/bolt"
+
+//链结构体
 type Chain struct {
-	Blocks []*Block
+	LastHash []byte
+	DB       *bolt.DB
 }
 
 //创世区块链
