@@ -10,7 +10,7 @@ import (
 )
 
 const (
-	targetOffset = 30            //难度偏移量
+	targetOffset = 28            //难度偏移量
 	maxNonce     = math.MaxInt64 //最大nonce值
 )
 
