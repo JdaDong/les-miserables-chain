@@ -52,6 +52,10 @@ func NewBlockChain() *Chain {
 	if err != nil {
 		log.Panic(err)
 	}
+	return &Chain{
+		LastHash: lastHash,
+		DB:       db,
+	}
 }
 
 //区块派生
