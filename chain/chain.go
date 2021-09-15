@@ -1,6 +1,7 @@
 package chain
 
 import (
+	"fmt"
 	"github.com/boltdb/bolt"
 	"les-miserables-chain/persistence"
 	"log"
@@ -14,9 +15,40 @@ type Chain struct {
 
 //创世区块链
 func NewBlockChain() *Chain {
-	var lastHash [32]byte
+	var lastHash []byte
 
 	db, err := bolt.Open(persistence.DbFile, 0600, nil)
+	if err != nil {
+		log.Panic(err)
+	}
+
+	err = db.Update(func(tx *bolt.Tx) error {
+		b := tx.Bucket([]byte(persistence.BlockBucket))
+		//判断bucket是否存在
+		if b == nil {
+			fmt.Println("Creating the genesis block.....")
+			genesisBlock := NewGenesisBlock()
+			//bucket不存在，创建一个桶
+			b, err := tx.CreateBucket([]byte(persistence.BlockBucket))
+			if err != nil {
+				log.Panic(err)
+			}
+			//创世区块存储到bucket中
+			err = b.Put(genesisBlock.BlockCurrentHash, Serialize(genesisBlock))
+			if err != nil {
+				log.Panic(err)
+			}
+			//存储最新的出块hash
+			err = b.Put([]byte("last"), genesisBlock.BlockCurrentHash)
+			if err != nil {
+				log.Panic(err)
+			}
+			lastHash = genesisBlock.BlockCurrentHash
+		} else {
+			lastHash = b.Get([]byte("last"))
+		}
+		return nil
+	})
 	if err != nil {
 		log.Panic(err)
 	}
@@ -24,9 +56,5 @@ func NewBlockChain() *Chain {
 
 //区块派生
 func (chain *Chain) AddBlock(data string) {
-	//1.创建新的区块
-	chainLength := len(chain.Blocks) - 1                                   //计算链长度
-	newBlock := NewBlock(data, chain.Blocks[chainLength].BlockCurrentHash) //生成区块
-	//2.区块链派生
-	chain.Blocks = append(chain.Blocks, newBlock)
+
 }
