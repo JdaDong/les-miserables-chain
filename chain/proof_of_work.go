@@ -10,7 +10,7 @@ import (
 )
 
 const (
-	targetOffset = 20            //难度偏移量
+	targetOffset = 21            //难度偏移量
 	maxNonce     = math.MaxInt64 //最大nonce值
 )
 
@@ -65,7 +65,7 @@ func (pow *ProofOfWork) ProofWork() (int64, []byte) {
 			nonce++
 		}
 	}
-	fmt.Println("\n\n")
+	fmt.Println("\n")
 	return nonce, hash[:]
 }
 

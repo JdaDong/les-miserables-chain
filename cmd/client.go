@@ -48,7 +48,7 @@ func (cli *CLI) printChain() {
 			fmt.Printf("Timestamp：%s \n", utils.ConvertToTime(block.BlockTimestamp/1e3))
 			fmt.Printf("Hash：%x \n", block.BlockCurrentHash)
 			fmt.Printf("Nonce：%d \n", block.BlockNonce)
-			fmt.Print("\n")
+			fmt.Println()
 			return nil
 		})
 		if err != nil {
@@ -67,6 +67,7 @@ func (cli *CLI) addBlock(data string) {
 }
 
 func (cli *CLI) Run() {
+	cli.validateArgs()
 	CmdAddBlock := flag.NewFlagSet("addblock", flag.ExitOnError)
 	CmdPrintChain := flag.NewFlagSet("printchain", flag.ExitOnError)
 	addBlockData := CmdAddBlock.String("data", "", "Block data")
@@ -90,6 +91,7 @@ func (cli *CLI) Run() {
 			cli.printUsage()
 			os.Exit(1)
 		}
+		cli.addBlock(*addBlockData)
 	}
 	if CmdPrintChain.Parsed() {
 		cli.printChain()
