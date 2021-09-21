@@ -1,12 +1,14 @@
 package main
 
 import (
-	"fmt"
 	"les-miserables-chain/chain"
+	"les-miserables-chain/cmd"
 )
 
 func main() {
 	blockchain := chain.NewBlockChain()
-	blockchain.AddBlock("test tx")
-	fmt.Printf("%x", blockchain.LastHash)
+	cli := cmd.CLI{
+		Chain: blockchain,
+	}
+	cli.Run()
 }

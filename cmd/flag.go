@@ -1,4 +1,4 @@
-package cmd_cli
+package cmd
 
 import (
 	"flag"
