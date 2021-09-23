@@ -2,6 +2,7 @@ package chain
 
 import (
 	"bytes"
+	"crypto/sha256"
 	"encoding/gob"
 	"log"
 	"time"
@@ -11,7 +12,7 @@ import (
 type Block struct {
 	BlockTimestamp   int64
 	BlockPreHash     []byte
-	BlockData        []byte
+	Transactions     []*Transaction
 	BlockCurrentHash []byte
 	BlockNonce       int64
 }
@@ -48,11 +49,11 @@ func DeserializeBlock(d []byte) *Block {
 }
 
 //生成区块
-func NewBlock(data string, preBlockHash []byte) *Block {
+func NewBlock(transactions []*Transaction, preBlockHash []byte) *Block {
 	block := &Block{
 		BlockTimestamp:   time.Now().UnixNano() / 1e6, //精确到毫秒
 		BlockPreHash:     preBlockHash,
-		BlockData:        []byte(data),
+		Transactions:     transactions,
 		BlockCurrentHash: []byte{},
 		BlockNonce:       0,
 	}
@@ -64,11 +65,22 @@ func NewBlock(data string, preBlockHash []byte) *Block {
 }
 
 //创世区块
-func NewGenesisBlock() *Block {
+func NewGenesisBlock(coinbaseTX *Transaction) *Block {
 	preBlockHash := make([]byte, 32)
 	//创世区块的父区块0x0
 	for i := 0; i < 32; i++ {
 		preBlockHash[i] = 0
 	}
-	return NewBlock("Hello Genesis.", preBlockHash)
+	return NewBlock([]*Transaction{coinbaseTX}, preBlockHash)
+}
+
+//拼接所有交易 生成hash值
+func (b *Block) HashTransactions() []byte {
+	var txHashes [][]byte
+	var txHash [32]byte
+	for _, tx := range b.Transactions {
+		txHashes = append(txHashes, tx.Index)
+	}
+	txHash = sha256.Sum256(bytes.Join(txHashes, []byte{}))
+	return txHash[:]
 }
