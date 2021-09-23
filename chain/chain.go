@@ -27,7 +27,9 @@ func NewBlockChain() *Chain {
 		//判断bucket是否存在
 		if b == nil {
 			fmt.Println("Creating the genesis block.....")
-			genesisBlock := NewGenesisBlock()
+			//创世区块集成交易
+			coinbaseTx := NewCoinBaseTX("levy", "In a soldier's stance, I aimed my hand at the mongrel dogs who teach")
+			genesisBlock := NewGenesisBlock(coinbaseTx)
 			//bucket不存在，创建一个桶
 			b, err := tx.CreateBucket([]byte(persistence.BlockBucket))
 			if err != nil {
@@ -59,9 +61,9 @@ func NewBlockChain() *Chain {
 }
 
 //区块派生
-func (chain *Chain) AddBlock(data string) {
+func (chain *Chain) AddBlock(transactions []*Transaction) {
 	//1.创建区块
-	newBlock := NewBlock(data, chain.LastHash)
+	newBlock := NewBlock(transactions, chain.LastHash)
 	//2.区块bucket更新
 	err := chain.DB.Update(func(tx *bolt.Tx) error {
 		//获取当前表
