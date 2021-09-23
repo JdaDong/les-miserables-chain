@@ -1,10 +1,60 @@
 package chain
 
+import (
+	"bytes"
+	"crypto/sha256"
+	"encoding/gob"
+	"fmt"
+	"log"
+)
+
 //UTXO交易数据
 type Transaction struct {
 	Index   []byte
 	Inputs  []TXInput
 	Outputs []TXOutput
+}
+
+const godMoney = 7
+
+//coinbase交易
+func NewCoinBaseTX(to, data string) *Transaction {
+	if data == "" {
+		data = fmt.Sprintf("Reward to '%s'", to)
+	}
+
+	//创世输入
+	txin := TXInput{
+		TxID:        []byte{},
+		OutputIndex: -1,
+		ScriptSig:   data,
+	}
+	//创世输出
+	txout := TXOutput{
+		Value:        godMoney,
+		ScriptPubKey: to,
+	}
+	//创世交易
+	tx := Transaction{
+		Index:   nil,
+		Inputs:  []TXInput{txin},
+		Outputs: []TXOutput{txout},
+	}
+	tx.SetIndex()
+	return &tx
+}
+
+//生成交易ID
+func (tx *Transaction) SetIndex() {
+	var encoded bytes.Buffer
+	var hash [32]byte
+	enc := gob.NewEncoder(&encoded)
+	err := enc.Encode(tx)
+	if err != nil {
+		log.Panic(err)
+	}
+	hash = sha256.Sum256(encoded.Bytes())
+	tx.Index = hash[:]
 }
 
 //UTXO交易输入
