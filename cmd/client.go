@@ -43,7 +43,7 @@ func (cli *CLI) printChain() {
 			b := tx.Bucket([]byte(persistence.BlockBucket))
 			blockBytes := b.Get(blockchainIterator.CurrentHash)
 			block := chain.DeserializeBlock(blockBytes)
-			fmt.Printf("Data：%s \n", string(block.BlockData))
+			fmt.Printf("Transaction：%v \n", block.Transactions)
 			fmt.Printf("PrevBlockHash：%x \n", block.BlockPreHash)
 			fmt.Printf("Timestamp：%s \n", utils.ConvertToTime(block.BlockTimestamp/1e3))
 			fmt.Printf("Hash：%x \n", block.BlockCurrentHash)
@@ -62,8 +62,8 @@ func (cli *CLI) printChain() {
 	}
 }
 
-func (cli *CLI) addBlock(data string) {
-	cli.Chain.AddBlock(data)
+func (cli *CLI) addBlock(transactions []*chain.Transaction) {
+	cli.Chain.AddBlock(transactions)
 }
 
 func (cli *CLI) Run() {
@@ -91,7 +91,7 @@ func (cli *CLI) Run() {
 			cli.printUsage()
 			os.Exit(1)
 		}
-		cli.addBlock(*addBlockData)
+		cli.addBlock(nil)
 	}
 	if CmdPrintChain.Parsed() {
 		cli.printChain()
