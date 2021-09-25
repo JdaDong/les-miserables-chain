@@ -157,7 +157,7 @@ func (chain *Chain) FindUnspentTransactions(address string) []Transaction {
 
 //查询可用的未花费的输出信息
 func (chain *Chain) FindSpendableOutputs(address string, amount int) (int, map[string][]int) {
-	//未花费交易输出
+	//未花费交易下的未花费交易输出
 	unspentOutputs := make(map[string][]int)
 	//未花费交易
 	unspentTxs := chain.FindUnspentTransactions(address)
