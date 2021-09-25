@@ -73,3 +73,13 @@ func (tx *Transaction) SetIndex() {
 	hash = sha256.Sum256(encoded.Bytes())
 	tx.Index = hash[:]
 }
+
+//解锁交易输入
+func (in *TXInput) UnlockInput(unlockInputAddress string) bool {
+	return in.ScriptSig == unlockInputAddress
+}
+
+//解锁交易输出
+func (out *TXOutput) UnlockOutput(unlockOutputAddress string) bool {
+	return out.ScriptPubKey == unlockOutputAddress
+}

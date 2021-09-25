@@ -87,3 +87,5 @@ func (chain *Chain) AddBlock(transactions []*Transaction) {
 	}
 
 }
+
+//查询地址下的未花费输出的交易集合
