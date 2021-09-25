@@ -154,3 +154,23 @@ func (chain *Chain) FindUnspentTransactions(address string) []Transaction {
 	}
 	return unspentTxs
 }
+
+//查询可用的未花费的输出信息
+func (chain *Chain) FindSpendableOutputs(address string, amount int) (int, map[string][]int) {
+	unspentOutputs := make(map[string][]int)
+	unspentTxs := chain.FindUnspentTransactions(address)
+	accumulated := 0
+Work:
+	for _, tx := range unspentTxs {
+		txID := hex.EncodeToString(tx.Index)
+		for outIdx, out := range tx.Outputs {
+			if out.UnlockOutput(address) && accumulated < amount {
+				unspentOutputs[txID] = append(unspentOutputs[txID], outIdx)
+				if accumulated >= amount {
+					break Work
+				}
+			}
+		}
+	}
+	return accumulated, unspentOutputs
+}
