@@ -94,6 +94,7 @@ func (chain *Chain) AddBlock(transactions []*Transaction) {
 func (chain *Chain) FindUnspentTransactions(address string) []Transaction {
 	//存储未花费的交易
 	var unspentTxs []Transaction
+	//存储花费的交易
 	spentTxs := make(map[string][]int)
 	blockchainIterator := chain.Iterator()
 	var hashInt big.Int
@@ -111,7 +112,9 @@ func (chain *Chain) FindUnspentTransactions(address string) []Transaction {
 				index := hex.EncodeToString(transaction.Index)
 				//Outputs的label
 			Outputs:
+				//遍历交易输出
 				for outIdx, out := range transaction.Outputs {
+					//判断是否已经被花费？
 					if spentTxs[index] != nil {
 						for _, spentOut := range spentTxs[index] {
 							if spentOut == outIdx {
@@ -119,12 +122,16 @@ func (chain *Chain) FindUnspentTransactions(address string) []Transaction {
 							}
 						}
 					}
+					//如果是交易输出的解锁对象，则加入未花费交易
 					if out.UnlockOutput(address) {
 						unspentTxs = append(unspentTxs, *transaction)
 					}
 				}
+				//判断是否是coinbase交易
 				if transaction.IsCoinbase() == false {
+					//遍历交易输入
 					for _, in := range transaction.Inputs {
+						//如果是交易输入解锁对象，则加入已花费交易中
 						if in.UnlockInput(address) {
 							inTxID := hex.EncodeToString(in.TxID)
 							spentTxs[inTxID] = append(spentTxs[inTxID], in.OutputIndex)
