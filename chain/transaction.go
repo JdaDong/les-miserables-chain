@@ -15,6 +15,19 @@ type Transaction struct {
 	Outputs []TXOutput
 }
 
+//UTXO交易输入
+type TXInput struct {
+	TxID        []byte
+	OutputIndex int
+	ScriptSig   string
+}
+
+//UTXO交易输出
+type TXOutput struct {
+	Value        int
+	ScriptPubKey string
+}
+
 const godMoney = 7
 
 func (tx *Transaction) IsCoinbase() bool {
@@ -59,17 +72,4 @@ func (tx *Transaction) SetIndex() {
 	}
 	hash = sha256.Sum256(encoded.Bytes())
 	tx.Index = hash[:]
-}
-
-//UTXO交易输入
-type TXInput struct {
-	TxID        []byte
-	OutputIndex int
-	ScriptSig   string
-}
-
-//UTXO交易输出
-type TXOutput struct {
-	Value        int
-	ScriptPubKey string
 }
