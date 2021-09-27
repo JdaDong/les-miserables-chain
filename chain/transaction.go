@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"crypto/sha256"
 	"encoding/gob"
+	"encoding/hex"
 	"fmt"
 	"log"
 )
@@ -32,6 +33,50 @@ const godMoney = 7
 
 func (tx *Transaction) IsCoinbase() bool {
 	return len(tx.Inputs) == 1 && tx.Inputs[0].OutputIndex == -1 && len(tx.Inputs[0].TxID) == 0
+}
+func NewTransaction(from, to string, amount int, chain *Chain) *Transaction {
+
+	//创建输入
+	var inputs []TXInput
+	//创建输出
+	var outputs []TXOutput
+
+	acc, spendableOutputs := chain.FindSpendableOutputs(from, amount)
+	if acc < amount {
+		log.Panic("Not enough funds")
+	}
+	//遍历可用的输出，构建交易输入
+	for txid, outs := range spendableOutputs {
+		txID, err := hex.DecodeString(txid)
+		if err != nil {
+			log.Panic(err)
+		}
+		for _, out := range outs {
+			input := TXInput{
+				TxID:        txID,
+				OutputIndex: out,
+				ScriptSig:   from,
+			}
+			inputs = append(inputs, input)
+		}
+	}
+	//交易输出
+	output := TXOutput{
+		Value:        amount,
+		ScriptPubKey: to,
+	}
+	outputs = append(outputs, output)
+
+	//找零
+	change := TXOutput{
+		Value:        acc - amount,
+		ScriptPubKey: from,
+	}
+	outputs = append(outputs, change)
+
+	tx := Transaction{nil, inputs, outputs}
+	tx.SetIndex()
+	return &tx
 }
 
 //coinbase交易

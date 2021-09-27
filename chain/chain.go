@@ -90,7 +90,7 @@ func (chain *Chain) AddBlock(transactions []*Transaction) {
 
 }
 
-//查询地址下的未花费输出的交易集合
+//查询地址下的未花费交易集合
 func (chain *Chain) FindUnspentTransactions(address string) []Transaction {
 	//存储未花费的交易
 	var unspentTxs []Transaction
@@ -155,7 +155,7 @@ func (chain *Chain) FindUnspentTransactions(address string) []Transaction {
 	return unspentTxs
 }
 
-//查询可用的未花费的输出信息
+//查询可用的未花费输出信息
 func (chain *Chain) FindSpendableOutputs(address string, amount int) (int, map[string][]int) {
 	//未花费交易下的未花费交易输出
 	unspentOutputs := make(map[string][]int)
