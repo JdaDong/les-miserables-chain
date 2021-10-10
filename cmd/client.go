@@ -62,8 +62,15 @@ func (cli *CLI) printChain() {
 	}
 }
 
+//转账
+func (cli *CLI) sendToken() {
+	tx1 := chain.NewTransaction("levy", "page1", 1, cli.Chain)
+	tx2 := chain.NewTransaction("levy", "page2", 2, cli.Chain)
+	cli.Chain.MineBlock([]*chain.Transaction{tx1, tx2})
+}
+
 func (cli *CLI) addBlock(transactions []*chain.Transaction) {
-	cli.Chain.AddBlock(transactions)
+	cli.Chain.MineBlock(transactions)
 }
 
 func (cli *CLI) Run() {
