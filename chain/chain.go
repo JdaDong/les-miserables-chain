@@ -93,20 +93,21 @@ func (chain *Chain) MineBlock(transactions []*Transaction) {
 
 //查询地址下的未花费交易集合
 func (chain *Chain) FindUnspentTransactions(address string) []Transaction {
-	//存储未花费的交易
+	//未花费交易
 	var unspentTxs []Transaction
 	//存储花费的交易
 	spentTxs := make(map[string][]int)
 	blockchainIterator := chain.Iterator()
 	var hashInt big.Int
 
+	//迭代遍历区块链
 	for {
 		err := blockchainIterator.DB.View(func(tx *bolt.Tx) error {
-			//获取当前区块
+			//获取最新区块
 			b := tx.Bucket([]byte(persistence.BlockBucket))
 			blockBytes := b.Get(blockchainIterator.CurrentHash)
 			block := DeserializeBlock(blockBytes)
-
+			//遍历区块交易信息
 			for _, transaction := range block.Transactions {
 				//将交易ID转换为16进制
 				index := hex.EncodeToString(transaction.Index)
@@ -116,6 +117,7 @@ func (chain *Chain) FindUnspentTransactions(address string) []Transaction {
 				for outIdx, out := range transaction.Outputs {
 					//判断是否已经被花费？
 					if spentTxs[index] != nil {
+						//遍历花费交易
 						for _, spentOut := range spentTxs[index] {
 							if spentOut == outIdx {
 								continue Outputs
@@ -157,7 +159,7 @@ func (chain *Chain) FindUnspentTransactions(address string) []Transaction {
 
 //查询可用的未花费输出信息
 func (chain *Chain) FindSpendableOutputs(address string, amount int) (int, map[string][]int) {
-	//未花费交易下的未花费交易输出
+	//未花费交易输出
 	unspentOutputs := make(map[string][]int)
 	//未花费交易
 	unspentTxs := chain.FindUnspentTransactions(address)
@@ -167,12 +169,12 @@ Work:
 	//遍历未花费交易
 	for _, tx := range unspentTxs {
 		//获取未花费交易的交易ID
-		txID := hex.EncodeToString(tx.Index)
+		txh := hex.EncodeToString(tx.Index)
 		//遍历该未花费交易下的未花费交易输出
 		for outIdx, out := range tx.Outputs {
 			if out.UnlockOutput(address) && accumulated < amount {
 				accumulated += out.Value
-				unspentOutputs[txID] = append(unspentOutputs[txID], outIdx)
+				unspentOutputs[txh] = append(unspentOutputs[txh], outIdx)
 				if accumulated >= amount {
 					break Work
 				}

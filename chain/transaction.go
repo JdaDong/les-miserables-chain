@@ -44,6 +44,7 @@ func NewTransaction(from, to string, amount int, chain *Chain) *Transaction {
 
 	//获取未消费的输出
 	acc, spendableOutputs := chain.FindSpendableOutputs(from, amount)
+	fmt.Println(spendableOutputs)
 	//额度小于转账金额
 	if acc < amount {
 		log.Panic("Not enough funds")
