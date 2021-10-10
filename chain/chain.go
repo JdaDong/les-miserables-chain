@@ -108,7 +108,6 @@ func (chain *Chain) FindUnspentTransactions(address string) []Transaction {
 			block := DeserializeBlock(blockBytes)
 
 			for _, transaction := range block.Transactions {
-				fmt.Printf("TransactionHash:%x\n", transaction.Index)
 				//将交易ID转换为16进制
 				index := hex.EncodeToString(transaction.Index)
 				//Outputs的label
@@ -134,8 +133,8 @@ func (chain *Chain) FindUnspentTransactions(address string) []Transaction {
 					for _, in := range transaction.Inputs {
 						//如果是交易输入解锁对象，则加入已花费交易中
 						if in.UnlockInput(address) {
-							inTxID := hex.EncodeToString(in.TxID)
-							spentTxs[inTxID] = append(spentTxs[inTxID], in.OutputIndex)
+							//inTxID := hex.EncodeToString(in.TxID)
+							spentTxs[index] = append(spentTxs[index], in.OutputIndex)
 						}
 					}
 				}
