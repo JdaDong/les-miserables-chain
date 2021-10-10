@@ -76,6 +76,7 @@ func NewTransaction(from, to string, amount int, chain *Chain) *Transaction {
 
 	tx := Transaction{nil, inputs, outputs}
 	tx.SetIndex()
+	fmt.Println(from, to, tx)
 	return &tx
 }
 

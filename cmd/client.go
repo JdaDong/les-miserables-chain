@@ -63,21 +63,22 @@ func (cli *CLI) printChain() {
 }
 
 //转账
-func (cli *CLI) sendToken() {
+func (cli *CLI) sendToken(data string) {
+	fmt.Println(data)
 	tx1 := chain.NewTransaction("levy", "page1", 1, cli.Chain)
 	tx2 := chain.NewTransaction("levy", "page2", 2, cli.Chain)
 	cli.Chain.MineBlock([]*chain.Transaction{tx1, tx2})
 }
 
-func (cli *CLI) addBlock(transactions []*chain.Transaction) {
-	cli.Chain.MineBlock(transactions)
+func (cli *CLI) addBlock(data string) {
+	cli.sendToken(data)
 }
 
 func (cli *CLI) Run() {
 	cli.validateArgs()
 	CmdAddBlock := flag.NewFlagSet("addblock", flag.ExitOnError)
 	CmdPrintChain := flag.NewFlagSet("printchain", flag.ExitOnError)
-	addBlockData := CmdAddBlock.String("data", "", "Block data")
+	addBlockData := CmdAddBlock.String("data", "转账中", "Block data")
 	switch os.Args[1] {
 	case "addblock":
 		err := CmdAddBlock.Parse(os.Args[2:])
@@ -98,7 +99,7 @@ func (cli *CLI) Run() {
 			cli.printUsage()
 			os.Exit(1)
 		}
-		cli.addBlock(nil)
+		cli.addBlock(*addBlockData)
 	}
 	if CmdPrintChain.Parsed() {
 		cli.printChain()
