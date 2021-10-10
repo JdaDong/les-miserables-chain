@@ -63,25 +63,26 @@ func NewBlockChain() *Chain {
 }
 
 //区块派生
-func (chain *Chain) AddBlock(transactions []*Transaction) {
-	//1.创建区块
-	newBlock := NewBlock(transactions, chain.LastHash)
-	//2.区块bucket更新
+func (chain *Chain) MineBlock(transactions []*Transaction) {
 	err := chain.DB.Update(func(tx *bolt.Tx) error {
+		//创建区块
+		newBlock := NewBlock(transactions, chain.LastHash)
 		//获取当前表
 		b := tx.Bucket([]byte(persistence.BlockBucket))
-		//存储区块数据
-		err := b.Put(newBlock.BlockCurrentHash, Serialize(newBlock))
-		if err != nil {
-			log.Panic(err)
+		if b != nil {
+			//存储区块数据
+			err := b.Put(newBlock.BlockCurrentHash, Serialize(newBlock))
+			if err != nil {
+				log.Panic(err)
+			}
+			//存储最新出块的hash
+			err = b.Put([]byte("last"), newBlock.BlockCurrentHash)
+			if err != nil {
+				log.Panic(err)
+			}
+			//更新最新出块的hash
+			chain.LastHash = newBlock.BlockCurrentHash
 		}
-		//存储最新出块的hash
-		err = b.Put([]byte("last"), newBlock.BlockCurrentHash)
-		if err != nil {
-			log.Panic(err)
-		}
-		//更新最新出块的hash
-		chain.LastHash = newBlock.BlockCurrentHash
 		return nil
 	})
 	if err != nil {
