@@ -76,7 +76,11 @@ func NewTransaction(from, to string, amount int, chain *Chain) *Transaction {
 
 	tx := Transaction{nil, inputs, outputs}
 	tx.SetIndex()
-	fmt.Println(from, to, tx)
+	fmt.Println("From:", from)
+	fmt.Println("To:", to)
+	fmt.Println("交易号:", tx.Index)
+	fmt.Println("交易输入:", tx.Inputs)
+	fmt.Println("交易输出:", tx.Outputs)
 	return &tx
 }
 
@@ -104,6 +108,10 @@ func NewCoinBaseTX(to, data string) *Transaction {
 		Outputs: []TXOutput{txout},
 	}
 	tx.SetIndex()
+	fmt.Println("To:", to)
+	fmt.Println("交易号:", tx.Index)
+	fmt.Println("交易输入:", tx.Inputs)
+	fmt.Println("交易输出:", tx.Outputs)
 	return &tx
 }
 
