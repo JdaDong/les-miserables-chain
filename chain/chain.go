@@ -4,7 +4,7 @@ import (
 	"encoding/hex"
 	"fmt"
 	"github.com/boltdb/bolt"
-	"les-miserables-chain/persistence"
+	"les-miserables-chain/database"
 	"log"
 	"math/big"
 )
@@ -19,13 +19,13 @@ type Chain struct {
 func NewBlockChain() *Chain {
 	var lastHash []byte
 
-	db, err := bolt.Open(persistence.DbFile, 0600, nil)
+	db, err := bolt.Open(database.DbFile, 0600, nil)
 	if err != nil {
 		log.Panic(err)
 	}
 
 	err = db.Update(func(tx *bolt.Tx) error {
-		b := tx.Bucket([]byte(persistence.BlockBucket))
+		b := tx.Bucket([]byte(database.BlockBucket))
 		//判断bucket是否存在
 		if b == nil {
 			fmt.Println("Creating the genesis block.....")
@@ -33,7 +33,7 @@ func NewBlockChain() *Chain {
 			coinbaseTx := NewCoinBaseTX("levy", "In a soldier's stance, I aimed my hand at the mongrel dogs who teach")
 			genesisBlock := NewGenesisBlock(coinbaseTx)
 			//bucket不存在，创建一个桶
-			b, err := tx.CreateBucket([]byte(persistence.BlockBucket))
+			b, err := tx.CreateBucket([]byte(database.BlockBucket))
 			if err != nil {
 				log.Panic(err)
 			}
@@ -68,7 +68,7 @@ func (chain *Chain) MineBlock(transactions []*Transaction) {
 		//创建区块
 		newBlock := NewBlock(transactions, chain.LastHash)
 		//获取当前表
-		b := tx.Bucket([]byte(persistence.BlockBucket))
+		b := tx.Bucket([]byte(database.BlockBucket))
 		if b != nil {
 			//存储区块数据
 			err := b.Put(newBlock.BlockCurrentHash, Serialize(newBlock))
@@ -104,7 +104,7 @@ func (chain *Chain) FindUnspentTransactions(address string) []Transaction {
 	for {
 		err := blockchainIterator.DB.View(func(tx *bolt.Tx) error {
 			//获取最新区块
-			b := tx.Bucket([]byte(persistence.BlockBucket))
+			b := tx.Bucket([]byte(database.BlockBucket))
 			blockBytes := b.Get(blockchainIterator.CurrentHash)
 			block := DeserializeBlock(blockBytes)
 			//遍历区块交易信息
