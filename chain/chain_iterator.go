@@ -2,7 +2,7 @@ package chain
 
 import (
 	"github.com/boltdb/bolt"
-	"les-miserables-chain/persistence"
+	"les-miserables-chain/database"
 	"log"
 )
 
@@ -25,7 +25,7 @@ func (chain *Chain) Iterator() *ChainIterator {
 func (ci *ChainIterator) Next() *ChainIterator {
 	var nextHash []byte
 	err := ci.DB.View(func(tx *bolt.Tx) error {
-		b := tx.Bucket([]byte(persistence.BlockBucket))
+		b := tx.Bucket([]byte(database.BlockBucket))
 		currentBlockBytes := b.Get(ci.CurrentHash)
 
 		currentBlock := DeserializeBlock(currentBlockBytes)

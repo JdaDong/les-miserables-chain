@@ -3,13 +3,14 @@ package cmd
 import (
 	"flag"
 	"fmt"
-	"github.com/boltdb/bolt"
 	"les-miserables-chain/chain"
 	"les-miserables-chain/database"
 	"les-miserables-chain/utils"
 	"log"
 	"math/big"
 	"os"
+
+	"github.com/boltdb/bolt"
 )
 
 type CLI struct {
@@ -19,9 +20,9 @@ type CLI struct {
 //打印帮助信息
 func (cli *CLI) printUsage() {
 	fmt.Println("Usage:")
-	fmt.Println("\tgetbalance -address ADDRESS - Get balance of ADDRESS")                                 //获取余额
-	fmt.Println("\tinit -address ADDRESS - Create a blockchain and send genesis block reward to ADDRESS") //初始化区块链
-	fmt.Println("\tprintchain - Print all the blocks of the blockchain:")                                 //
+	fmt.Println("\tgetbalance -address ADDRESS - Get balance of ADDRESS")                                     //获取余额
+	fmt.Println("\tinit -address ADDRESS - Initialize a blockchain and send genesis block reward to ADDRESS") //初始化区块链
+	fmt.Println("\tprintchain - Print all the blocks of the blockchain:")                                     //
 	fmt.Println("\tsend -from FROM -to TO -amount AMOUNT - Send AMOUNT of coins from FROM address to TO")
 }
 
@@ -35,6 +36,13 @@ func (cli *CLI) validateArgs() {
 
 //打印链信息
 func (cli *CLI) printChain() {
+	//判断区块链是否已经初始化
+	if !database.DbExist() {
+		fmt.Println("You need to initialize the blockchain first.")
+		cli.printUsage()
+		return
+	}
+
 	var blockchainIterator *chain.ChainIterator
 	blockchainIterator = cli.Chain.Iterator()
 
