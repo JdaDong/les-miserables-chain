@@ -3,10 +3,11 @@ package chain
 import (
 	"encoding/hex"
 	"fmt"
-	"github.com/boltdb/bolt"
 	"les-miserables-chain/database"
 	"log"
 	"math/big"
+
+	"github.com/boltdb/bolt"
 )
 
 //链结构体
@@ -16,7 +17,7 @@ type Chain struct {
 }
 
 //创世区块链
-func NewBlockChain() *Chain {
+func InitBlockChain(to string) *Chain {
 	var lastHash []byte
 
 	db, err := bolt.Open(database.DbFile, 0600, nil)
@@ -30,7 +31,7 @@ func NewBlockChain() *Chain {
 		if b == nil {
 			fmt.Println("Creating the genesis block.....")
 			//创世区块集成交易
-			coinbaseTx := NewCoinBaseTX("levy", "In a soldier's stance, I aimed my hand at the mongrel dogs who teach")
+			coinbaseTx := NewCoinBaseTX(to, "In a soldier's stance, I aimed my hand at the mongrel dogs who teach")
 			genesisBlock := NewGenesisBlock(coinbaseTx)
 			//bucket不存在，创建一个桶
 			b, err := tx.CreateBucket([]byte(database.BlockBucket))
@@ -49,6 +50,7 @@ func NewBlockChain() *Chain {
 			}
 			lastHash = genesisBlock.BlockCurrentHash
 		} else {
+			fmt.Println("请勿重复初始化区块链!")
 			lastHash = b.Get([]byte("last"))
 		}
 		return nil

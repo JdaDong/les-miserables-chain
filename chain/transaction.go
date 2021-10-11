@@ -116,7 +116,7 @@ func NewCoinBaseTX(to, data string) *Transaction {
 	}
 	tx.SetIndex()
 	fmt.Println("To:", to)
-	fmt.Println("交易号:", tx.Index)
+	fmt.Printf("交易号:%x\n", tx.Index)
 	fmt.Println("交易输入:", tx.Inputs)
 	fmt.Println("交易输出:", tx.Outputs)
 	return &tx

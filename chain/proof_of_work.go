@@ -53,13 +53,13 @@ func (pow *ProofOfWork) ProofWork() (int64, []byte) {
 	for nonce < maxNonce {
 		data := pow.prepareData(nonce) //预处理数据
 		hash = sha256.Sum256(data)
-		fmt.Printf("\r%x", hash)
 		hashInt.SetBytes(hash[:]) //预处理数据哈希值
 
 		//   -1 if x <  y
 		//    0 if x == y
 		//   +1 if x >  y
 		if hashInt.Cmp(pow.target) == -1 {
+			fmt.Printf("哈希值：%x", hash)
 			break
 		} else {
 			nonce++
