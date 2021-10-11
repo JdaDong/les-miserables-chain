@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"github.com/boltdb/bolt"
 	"les-miserables-chain/chain"
-	"les-miserables-chain/persistence"
+	"les-miserables-chain/database"
 	"les-miserables-chain/utils"
 	"log"
 	"math/big"
@@ -19,8 +19,10 @@ type CLI struct {
 //打印帮助信息
 func (cli *CLI) printUsage() {
 	fmt.Println("Usage:")
-	fmt.Println("\taddblock -data BLOCK_DATA - add a block to the blockchain")
-	fmt.Println("\tprintchain - print all the blocks of the blockchain")
+	fmt.Println("\tgetbalance -address ADDRESS - Get balance of ADDRESS")                                 //获取余额
+	fmt.Println("\tinit -address ADDRESS - Create a blockchain and send genesis block reward to ADDRESS") //初始化区块链
+	fmt.Println("\tprintchain - Print all the blocks of the blockchain:")                                 //
+	fmt.Println("\tsend -from FROM -to TO -amount AMOUNT - Send AMOUNT of coins from FROM address to TO")
 }
 
 //校验参数
@@ -40,7 +42,7 @@ func (cli *CLI) printChain() {
 
 	for {
 		err := blockchainIterator.DB.View(func(tx *bolt.Tx) error {
-			b := tx.Bucket([]byte(persistence.BlockBucket))
+			b := tx.Bucket([]byte(database.DbFile))
 			blockBytes := b.Get(blockchainIterator.CurrentHash)
 			block := chain.DeserializeBlock(blockBytes)
 			fmt.Printf("Transaction：%v \n", block.Transactions)
