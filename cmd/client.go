@@ -19,24 +19,21 @@ func (cli *CLI) validateArgs() {
 	}
 }
 
-func (cli *CLI) addBlock(data string) {
-	cli.sendToken(data)
-}
-
 func (cli *CLI) Run() {
 	cli.validateArgs()
-	CmdAddBlock := flag.NewFlagSet("addblock", flag.ExitOnError)
-	CmdPrintChain := flag.NewFlagSet("printchain", flag.ExitOnError)
-	CmdDelete := flag.NewFlagSet("delete", flag.ExitOnError)
-	addBlockData := CmdAddBlock.String("data", "转账中", "Block data")
-	CmdInit := flag.NewFlagSet("init", flag.ExitOnError)
-	cbAddr := CmdInit.String("address", "", "coinbase address")
+	CmdPrintChain := flag.NewFlagSet("printchain", flag.ExitOnError) //打印区块链
+	CmdDelete := flag.NewFlagSet("delete", flag.ExitOnError)         //删除区块链
+	CmdInit := flag.NewFlagSet("init", flag.ExitOnError)             //初始化区块链
+	CmdGetBalance := flag.NewFlagSet("balance", flag.ExitOnError)    //获取账户余额
+	CmdSendToken := flag.NewFlagSet("send", flag.ExitOnError)        //转账
+
+	cbAddr := CmdInit.String("address", "", "创世区块奖励人")
+	balanceAddr := CmdGetBalance.String("addr", "", "获取指定地址的余额")
+	sendFrom := CmdSendToken.String("from", "", "转账源地址")
+	sendTo := CmdSendToken.String("to", "", "转账目的地址")
+	sendAmount := CmdSendToken.Int("amount", 0, "转账金额")
+
 	switch os.Args[1] {
-	case "addblock":
-		err := CmdAddBlock.Parse(os.Args[2:])
-		if err != nil {
-			log.Panic(err)
-		}
 	case "printchain":
 		err := CmdPrintChain.Parse(os.Args[2:])
 		if err != nil {
@@ -52,16 +49,19 @@ func (cli *CLI) Run() {
 		if err != nil {
 			log.Panic(err)
 		}
+	case "balance":
+		err := CmdGetBalance.Parse(os.Args[2:])
+		if err != nil {
+			log.Panic(err)
+		}
+	case "send":
+		err := CmdSendToken.Parse(os.Args[2:])
+		if err != nil {
+			log.Panic(err)
+		}
 	default:
 		cli.printUsage()
 		os.Exit(1)
-	}
-	if CmdAddBlock.Parsed() {
-		if *addBlockData == "" {
-			cli.printUsage()
-			os.Exit(1)
-		}
-		cli.addBlock(*addBlockData)
 	}
 	if CmdInit.Parsed() {
 		if *cbAddr == "" {
@@ -75,5 +75,19 @@ func (cli *CLI) Run() {
 	}
 	if CmdDelete.Parsed() {
 		cli.deleteChain()
+	}
+	if CmdGetBalance.Parsed() {
+		if *balanceAddr == "" {
+			cli.printUsage()
+			os.Exit(1)
+		}
+		cli.getBalance(*balanceAddr)
+	}
+	if CmdSendToken.Parsed() {
+		if *sendFrom == "" || *sendTo == "" || *sendAmount == 0 {
+			cli.printUsage()
+			os.Exit(1)
+		}
+		cli.sendToken(*sendFrom, *sendTo, *sendAmount)
 	}
 }
