@@ -1,9 +1,10 @@
 package chain
 
 import (
-	"github.com/boltdb/bolt"
 	"les-miserables-chain/database"
 	"log"
+
+	"github.com/boltdb/bolt"
 )
 
 //链迭代器
@@ -39,4 +40,23 @@ func (ci *ChainIterator) Next() *ChainIterator {
 		CurrentHash: nextHash,
 		DB:          ci.DB,
 	}
+}
+
+//迭代区块
+func (ci *ChainIterator) NextBlock() *Block {
+	var block *Block
+	err := ci.DB.View(func(tx *bolt.Tx) error {
+		b := tx.Bucket([]byte(database.BlockBucket))
+		if b != nil {
+			currentBlockBytes := b.Get(ci.CurrentHash)
+			block = DeserializeBlock(currentBlockBytes)
+
+			ci.CurrentHash = block.BlockPreHash
+		}
+		return nil
+	})
+	if err != nil {
+		log.Panic(err)
+	}
+	return block
 }
