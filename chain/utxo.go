@@ -158,17 +158,18 @@ func (chain *Chain) UnUTXOs(address string, txs []*Transaction) []*UTXO {
 
 }
 
+//多方转账-可用UTXO交易输出
 func (chain *Chain) SpendableUTXOs(from string, amount int, txs []*Transaction) (int, map[string][]int) {
-	//获取转账源地址的未花费交易输出
+	//1.获取转账源地址的未花费交易输出
 	utxos := chain.UnUTXOs(from, txs)
 
-	//可用UTXO的map
+	//可用UTXO交易输出
 	spendableUTXO := make(map[string][]int)
 
 	//余额
 	var value int
 
-	//遍历未花费UTXO交易输出，一旦余额充足就不再遍历
+	//2.遍历未花费UTXO交易输出，一旦余额充足就不再遍历
 	for _, utxo := range utxos {
 		value += utxo.OutPut.Value
 		hash := hex.EncodeToString(utxo.TxHash)
@@ -177,7 +178,7 @@ func (chain *Chain) SpendableUTXOs(from string, amount int, txs []*Transaction) 
 			break
 		}
 	}
-	//遍历完后，余额还是不足，退出
+	//3.遍历完后，余额还是不足，退出
 	if value < amount {
 		fmt.Printf("%s地址中的余额不足\n", from)
 		os.Exit(1)
