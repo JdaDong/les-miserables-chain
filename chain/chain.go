@@ -185,3 +185,13 @@ Work:
 	}
 	return accumulated, unspentOutputs
 }
+
+//获取地址余额
+func (chain *Chain) GetBalance(address string) int {
+	utxos := chain.UnUTXOs(address)
+	var amount int
+	for _, utxo := range utxos {
+		amount = amount + utxo.OutPut.Value
+	}
+	return amount
+}
