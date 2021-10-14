@@ -39,10 +39,13 @@ func CreateTransaction(from, to string, amount int, chain *Chain) *Transaction {
 	//刚好能用的金额和合规的UTXO输出
 	money, validateUTXO := chain.SpendableUTXOs(from, amount)
 
+	//交易输入和输出集合
 	var txInputs []*TXInput
 	var txOutputs []*TXOutput
 
+	//遍历可用UTXO交易输出
 	for txHash, indexArry := range validateUTXO {
+		//构建交易输入
 		txHashBytes, _ := hex.DecodeString(txHash)
 		for _, index := range indexArry {
 			txInput := &TXInput{txHashBytes, index, from}
