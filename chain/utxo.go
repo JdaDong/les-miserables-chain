@@ -16,11 +16,12 @@ type UTXO struct {
 
 //获取未花费交易的UXTO信息
 func (chain *Chain) UnUTXOs(address string, txs []*Transaction) []*UTXO {
-	//UTXO交易输出集合
+	//UTXO未花费交易输出集合
 	var unUTXOs []*UTXO
 	//已花费交易输出
 	spentTXOutputs := make(map[string][]int)
 
+	//1.遍历同一区块的前几个交易输入
 	for _, tx := range txs {
 		if tx.IsCoinbase() == false {
 			for _, in := range tx.Inputs {
@@ -32,6 +33,7 @@ func (chain *Chain) UnUTXOs(address string, txs []*Transaction) []*UTXO {
 		}
 	}
 
+	//2.遍历同一区块的前几个交易输出
 	for _, tx := range txs {
 	Work1:
 		for index, out := range tx.Outputs {
@@ -40,6 +42,7 @@ func (chain *Chain) UnUTXOs(address string, txs []*Transaction) []*UTXO {
 					utxo := &UTXO{tx.Index, index, out}
 					unUTXOs = append(unUTXOs, utxo)
 				} else {
+
 					for hash, indexArray := range spentTXOutputs {
 						txHashStr := hex.EncodeToString(tx.Index)
 						if hash == txHashStr {
@@ -64,7 +67,7 @@ func (chain *Chain) UnUTXOs(address string, txs []*Transaction) []*UTXO {
 		}
 	}
 
-	//区块链迭代器
+	//区块链迭代器 遍历前面所有区块的交易
 	blockIterator := chain.Iterator()
 
 	for {
