@@ -6,6 +6,7 @@ import (
 	"les-miserables-chain/database"
 	"log"
 	"math/big"
+	"strconv"
 
 	"github.com/boltdb/bolt"
 )
@@ -64,36 +65,7 @@ func InitBlockChain(to string) *Chain {
 	}
 }
 
-//区块派生
-func (chain *Chain) MineBlock(transactions []*Transaction) {
-	err := chain.DB.Update(func(tx *bolt.Tx) error {
-		//创建区块
-		newBlock := NewBlock(transactions, chain.LastHash)
-		//获取当前表
-		b := tx.Bucket([]byte(database.BlockBucket))
-		if b != nil {
-			//存储区块数据
-			err := b.Put(newBlock.BlockCurrentHash, Serialize(newBlock))
-			if err != nil {
-				log.Panic(err)
-			}
-			//存储最新出块的hash
-			err = b.Put([]byte("last"), newBlock.BlockCurrentHash)
-			if err != nil {
-				log.Panic(err)
-			}
-			//更新最新出块的hash
-			chain.LastHash = newBlock.BlockCurrentHash
-		}
-		return nil
-	})
-	if err != nil {
-		log.Panic(err)
-	}
-
-}
-
-//查询地址下的未花费交易集合
+//查询地址下的未花费交易集合-已作废
 func (chain *Chain) FindUnspentTransactions(address string) []Transaction {
 	//未花费交易
 	var unspentTxs []Transaction
@@ -159,7 +131,7 @@ func (chain *Chain) FindUnspentTransactions(address string) []Transaction {
 	return unspentTxs
 }
 
-//查询可用的未花费输出信息
+//查询可用的未花费输出信息-已作废
 func (chain *Chain) FindSpendableOutputs(address string, amount int) (int, map[string][]int) {
 	//未花费交易输出
 	unspentOutputs := make(map[string][]int)
@@ -188,10 +160,53 @@ Work:
 
 //获取地址余额
 func (chain *Chain) GetBalance(address string) int {
-	utxos := chain.UnUTXOs(address)
+	utxos := chain.UnUTXOs(address, []*Transaction{})
 	var amount int
 	for _, utxo := range utxos {
 		amount = amount + utxo.OutPut.Value
 	}
 	return amount
+}
+
+//区块派生
+func (chain *Chain) MineBlock(from []string, to []string, amount []string) error {
+
+	var txs []*Transaction
+
+	for index, address := range from {
+		value, _ := strconv.Atoi(amount[index])
+		tx := CreateTransaction(address, to[index], value, chain, txs)
+		txs = append(txs, tx)
+		//fmt.Println(tx)
+	}
+	var block *Block
+
+	err := chain.DB.View(func(tx *bolt.Tx) error {
+		b := tx.Bucket([]byte(database.BlockBucket))
+		if b != nil {
+			hash := b.Get([]byte("last"))
+			blockBytes := b.Get(hash)
+			block = DeserializeBlock(blockBytes)
+		}
+		return nil
+	})
+	if err != nil {
+		return err
+	}
+
+	block = NewBlock(txs, block.BlockCurrentHash)
+
+	err = chain.DB.Update(func(tx *bolt.Tx) error {
+		b := tx.Bucket([]byte(database.BlockBucket))
+		if b != nil {
+			_ = b.Put(block.BlockCurrentHash, Serialize(block))
+			_ = b.Put([]byte("last"), block.BlockCurrentHash)
+			chain.LastHash = block.BlockCurrentHash
+		}
+		return nil
+	})
+	if err != nil {
+		return err
+	}
+	return nil
 }

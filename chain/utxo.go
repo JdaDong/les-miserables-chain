@@ -15,77 +15,152 @@ type UTXO struct {
 }
 
 //获取未花费交易的UXTO信息
-func (chain *Chain) UnUTXOs(address string) []*UTXO {
+func (chain *Chain) UnUTXOs(address string, txs []*Transaction) []*UTXO {
 	//UTXO交易输出集合
-	var unUTXOos []*UTXO
+	var unUTXOs []*UTXO
 	//已花费交易输出
 	spentTXOutputs := make(map[string][]int)
+
+	for _, tx := range txs {
+		if tx.IsCoinbase() == false {
+			for _, in := range tx.Inputs {
+				if in.UnlockInput(address) {
+					key := hex.EncodeToString(in.TxID)
+					spentTXOutputs[key] = append(spentTXOutputs[key], in.OutputIndex)
+				}
+			}
+		}
+	}
+
+	for _, tx := range txs {
+	Work1:
+		for index, out := range tx.Outputs {
+			if out.UnlockOutput(address) {
+				if len(spentTXOutputs) == 0 {
+					utxo := &UTXO{tx.Index, index, out}
+					unUTXOs = append(unUTXOs, utxo)
+				} else {
+					for hash, indexArray := range spentTXOutputs {
+						txHashStr := hex.EncodeToString(tx.Index)
+						if hash == txHashStr {
+							var isUnSpentUTXO bool
+							for _, outIndex := range indexArray {
+								if index == outIndex {
+									isUnSpentUTXO = true
+									continue Work1
+								}
+								if isUnSpentUTXO == false {
+									utxo := &UTXO{tx.Index, index, out}
+									unUTXOs = append(unUTXOs, utxo)
+								}
+							}
+						} else {
+							utxo := &UTXO{tx.Index, index, out}
+							unUTXOs = append(unUTXOs, utxo)
+						}
+					}
+				}
+			}
+		}
+	}
 
 	//区块链迭代器
 	blockIterator := chain.Iterator()
 
 	for {
-		//从最新区块开始遍历
+
 		block := blockIterator.NextBlock()
-		//遍历区块交易数据
-		for _, tx := range block.Transactions {
-			//遍历非创世交易
+
+		fmt.Println(block)
+		fmt.Println()
+
+		for i := len(block.Transactions) - 1; i >= 0; i-- {
+
+			tx := block.Transactions[i]
+			// txHash
+			// Vins
 			if tx.IsCoinbase() == false {
-				//遍历交易输入
 				for _, in := range tx.Inputs {
+					//是否能够解锁
 					if in.UnlockInput(address) {
+
 						key := hex.EncodeToString(in.TxID)
+
 						spentTXOutputs[key] = append(spentTXOutputs[key], in.OutputIndex)
 					}
+
 				}
 			}
-			//遍历交易输出
+
+			// Vouts
+
+		work:
 			for index, out := range tx.Outputs {
+
 				if out.UnlockOutput(address) {
+
+					fmt.Println(out)
+					fmt.Println(spentTXOutputs)
+
+					//&{2 zhangqiang}
+					//map[]
+
+					//map[cea12d33b2e7083221bf3401764fb661fd6c34fab50f5460e77628c42ca0e92b:[0]]
+
 					if len(spentTXOutputs) != 0 {
-						//遍历已花费交易输出
-						for txHash, indexArry := range spentTXOutputs {
-							for _, i := range indexArry {
-								//如果索引相等，表示某该地址的交易输出
+
+						var isSpentUTXO bool
+
+						for txHash, indexArray := range spentTXOutputs {
+
+							for _, i := range indexArray {
 								if index == i && txHash == hex.EncodeToString(tx.Index) {
-									continue
-								} else {
-									utxo := &UTXO{
-										TxHash: tx.Index,
-										Index:  index,
-										OutPut: &out,
-									}
-									unUTXOos = append(unUTXOos, utxo)
+									isSpentUTXO = true
+									continue work
 								}
 							}
 						}
-					} else {
-						utxo := &UTXO{
-							TxHash: tx.Index,
-							Index:  index,
-							OutPut: &out,
+
+						if isSpentUTXO == false {
+
+							utxo := &UTXO{tx.Index, index, out}
+							unUTXOs = append(unUTXOs, utxo)
+
 						}
-						unUTXOos = append(unUTXOos, utxo)
+					} else {
+						utxo := &UTXO{tx.Index, index, out}
+						unUTXOs = append(unUTXOs, utxo)
 					}
 
 				}
+
 			}
+
 		}
-		//遍历到0区块为止
+
+		fmt.Println(spentTXOutputs)
+
 		var hashInt big.Int
 		hashInt.SetBytes(block.BlockPreHash)
+
+		// Cmp compares x and y and returns:
+		//
+		//   -1 if x <  y
+		//    0 if x == y
+		//   +1 if x >  y
 		if hashInt.Cmp(big.NewInt(0)) == 0 {
 			break
 		}
+
 	}
 	//返回所有交易输出集合
-	return unUTXOos
+	return unUTXOs
 
 }
 
-func (chain *Chain) SpendableUTXOs(from string, amount int) (int, map[string][]int) {
+func (chain *Chain) SpendableUTXOs(from string, amount int, txs []*Transaction) (int, map[string][]int) {
 	//获取转账源地址的未花费交易输出
-	utxos := chain.UnUTXOs(from)
+	utxos := chain.UnUTXOs(from, txs)
 
 	//可用UTXO的map
 	spendableUTXO := make(map[string][]int)

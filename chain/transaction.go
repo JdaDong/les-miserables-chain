@@ -35,9 +35,9 @@ const godMoney = 7
 func (tx *Transaction) IsCoinbase() bool {
 	return len(tx.Inputs) == 1 && tx.Inputs[0].OutputIndex == -1 && len(tx.Inputs[0].TxID) == 0
 }
-func CreateTransaction(from, to string, amount int, chain *Chain) *Transaction {
+func CreateTransaction(from, to string, amount int, chain *Chain, txs []*Transaction) *Transaction {
 	//刚好能用的金额和合规的UTXO输出
-	money, validateUTXO := chain.SpendableUTXOs(from, amount)
+	money, validateUTXO := chain.SpendableUTXOs(from, amount, txs)
 
 	//交易输入和输出集合
 	var txInputs []*TXInput
