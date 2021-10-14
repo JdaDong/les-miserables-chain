@@ -35,29 +35,33 @@ const godMoney = 7
 func (tx *Transaction) IsCoinbase() bool {
 	return len(tx.Inputs) == 1 && tx.Inputs[0].OutputIndex == -1 && len(tx.Inputs[0].TxID) == 0
 }
+
+//转账-创建新的交易
 func CreateTransaction(from, to string, amount int, chain *Chain, txs []*Transaction) *Transaction {
-	//刚好能用的金额和合规的UTXO输出
+	//1.获取刚好能用的金额和合规的UTXO输出
 	money, validateUTXO := chain.SpendableUTXOs(from, amount, txs)
 
-	//交易输入和输出集合
 	var txInputs []*TXInput
 	var txOutputs []*TXOutput
 
-	//遍历可用UTXO交易输出
-	for txHash, indexArry := range validateUTXO {
-		//构建交易输入
+	//2.遍历可用UTXO交易输出
+	for txHash, indexArray := range validateUTXO {
+		//2.1.构建交易输入
 		txHashBytes, _ := hex.DecodeString(txHash)
-		for _, index := range indexArry {
+		for _, index := range indexArray {
 			txInput := &TXInput{txHashBytes, index, from}
 			txInputs = append(txInputs, txInput)
 		}
 	}
+	//转账
 	txOutput := &TXOutput{amount, to}
 	txOutputs = append(txOutputs, txOutput)
 
+	//找零
 	txOutput = &TXOutput{money - amount, from}
 	txOutputs = append(txOutputs, txOutput)
 
+	//构建交易
 	tx := &Transaction{[]byte{}, txInputs, txOutputs}
 
 	tx.SetIndex()
