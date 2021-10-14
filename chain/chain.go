@@ -173,14 +173,16 @@ func (chain *Chain) MineBlock(from []string, to []string, amount []string) error
 
 	var txs []*Transaction
 
+	//1.遍历多方转账，创建交易
 	for index, address := range from {
 		value, _ := strconv.Atoi(amount[index])
 		tx := CreateTransaction(address, to[index], value, chain, txs)
 		txs = append(txs, tx)
 		//fmt.Println(tx)
 	}
-	var block *Block
 
+	var block *Block
+	//2.获取最新高度的区块
 	err := chain.DB.View(func(tx *bolt.Tx) error {
 		b := tx.Bucket([]byte(database.BlockBucket))
 		if b != nil {
@@ -193,7 +195,7 @@ func (chain *Chain) MineBlock(from []string, to []string, amount []string) error
 	if err != nil {
 		return err
 	}
-
+	//3.根据当前区块构建新的区块
 	block = NewBlock(txs, block.BlockCurrentHash)
 
 	err = chain.DB.Update(func(tx *bolt.Tx) error {
