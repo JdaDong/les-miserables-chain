@@ -19,15 +19,18 @@ func (cli *CLI) printChain() {
 		cli.printUsage()
 		return
 	}
-
+	cli.Chain = chain.BlockchainObject()
+	defer cli.Chain.DB.Close()
+	fmt.Println("Hello1")
 	var blockchainIterator *chain.ChainIterator
 	blockchainIterator = cli.Chain.Iterator()
-
+	fmt.Println("Hello2")
+	//fmt.Println(blockchainIterator)
 	var hashInt big.Int
 
 	for {
 		err := blockchainIterator.DB.View(func(tx *bolt.Tx) error {
-			b := tx.Bucket([]byte(database.DbFile))
+			b := tx.Bucket([]byte(database.BlockBucket))
 			blockBytes := b.Get(blockchainIterator.CurrentHash)
 			block := chain.DeserializeBlock(blockBytes)
 			fmt.Printf("Coinbase Address：%v \n", block.Transactions[0].Outputs[0].ScriptPubKey)

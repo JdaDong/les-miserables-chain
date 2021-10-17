@@ -59,7 +59,7 @@ func (pow *ProofOfWork) ProofWork() (int64, []byte) {
 		//    0 if x == y
 		//   +1 if x >  y
 		if hashInt.Cmp(pow.target) == -1 {
-			fmt.Printf("哈希值：%x", hash)
+			fmt.Printf("区块哈希值：%x", hash)
 			break
 		} else {
 			nonce++

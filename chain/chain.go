@@ -18,7 +18,7 @@ type Chain struct {
 }
 
 //创世区块链
-func InitBlockChain(to string) *Chain {
+func InitBlockChain(to string) {
 	var lastHash []byte
 
 	db, err := bolt.Open(database.DbFile, 0600, nil)
@@ -59,10 +59,32 @@ func InitBlockChain(to string) *Chain {
 	if err != nil {
 		log.Panic(err)
 	}
-	return &Chain{
-		LastHash: lastHash,
-		DB:       db,
+}
+
+//返回Blockchain对象
+func BlockchainObject() *Chain {
+
+	db, err := bolt.Open(database.DbFile, 0600, nil)
+	if err != nil {
+		log.Fatal(err)
 	}
+
+	var tip []byte
+
+	err = db.View(func(tx *bolt.Tx) error {
+
+		b := tx.Bucket([]byte(database.BlockBucket))
+
+		if b != nil {
+			// 读取最新区块的Hash
+			tip = b.Get([]byte("last"))
+
+		}
+
+		return nil
+	})
+
+	return &Chain{tip, db}
 }
 
 //查询地址下的未花费交易集合-已作废

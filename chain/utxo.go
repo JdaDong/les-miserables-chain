@@ -74,8 +74,6 @@ func (chain *Chain) UnUTXOs(address string, txs []*Transaction) []*UTXO {
 
 		block := blockIterator.NextBlock()
 
-		fmt.Println(block)
-		fmt.Println()
 		//从区块最后一笔交易遍历
 		for i := len(block.Transactions) - 1; i >= 0; i-- {
 			tx := block.Transactions[i]
@@ -127,7 +125,7 @@ func (chain *Chain) UnUTXOs(address string, txs []*Transaction) []*UTXO {
 
 		}
 
-		fmt.Println(spentTXOutputs)
+		//fmt.Println(unUTXOs)
 
 		var hashInt big.Int
 		hashInt.SetBytes(block.BlockPreHash)
