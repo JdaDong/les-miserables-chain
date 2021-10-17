@@ -177,6 +177,7 @@ func (chain *Chain) MineBlock(from []string, to []string, amount []string) error
 	for index, address := range from {
 		value, _ := strconv.Atoi(amount[index])
 		tx := CreateTransaction(address, to[index], value, chain, txs)
+		//levy page 4 {}
 		txs = append(txs, tx)
 		//fmt.Println(tx)
 	}

@@ -76,15 +76,11 @@ func (chain *Chain) UnUTXOs(address string, txs []*Transaction) []*UTXO {
 
 		fmt.Println(block)
 		fmt.Println()
-
+		//从区块最后一笔交易遍历
 		for i := len(block.Transactions) - 1; i >= 0; i-- {
-
 			tx := block.Transactions[i]
-			// txHash
-			// Vins
 			if tx.IsCoinbase() == false {
 				for _, in := range tx.Inputs {
-					//是否能够解锁
 					if in.UnlockInput(address) {
 
 						key := hex.EncodeToString(in.TxID)
@@ -95,20 +91,10 @@ func (chain *Chain) UnUTXOs(address string, txs []*Transaction) []*UTXO {
 				}
 			}
 
-			// Vouts
-
 		work:
 			for index, out := range tx.Outputs {
 
 				if out.UnlockOutput(address) {
-
-					fmt.Println(out)
-					fmt.Println(spentTXOutputs)
-
-					//&{2 zhangqiang}
-					//map[]
-
-					//map[cea12d33b2e7083221bf3401764fb661fd6c34fab50f5460e77628c42ca0e92b:[0]]
 
 					if len(spentTXOutputs) != 0 {
 
@@ -145,12 +131,6 @@ func (chain *Chain) UnUTXOs(address string, txs []*Transaction) []*UTXO {
 
 		var hashInt big.Int
 		hashInt.SetBytes(block.BlockPreHash)
-
-		// Cmp compares x and y and returns:
-		//
-		//   -1 if x <  y
-		//    0 if x == y
-		//   +1 if x >  y
 		if hashInt.Cmp(big.NewInt(0)) == 0 {
 			break
 		}

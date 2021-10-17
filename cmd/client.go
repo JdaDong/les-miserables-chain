@@ -49,7 +49,7 @@ func (cli *CLI) Run() {
 		if err != nil {
 			log.Panic(err)
 		}
-	case "balance":
+	case "getbalance":
 		err := CmdGetBalance.Parse(os.Args[2:])
 		if err != nil {
 			log.Panic(err)
@@ -77,6 +77,7 @@ func (cli *CLI) Run() {
 		cli.deleteChain()
 	}
 	if CmdGetBalance.Parsed() {
+		//fmt.Println(*balanceAddr)
 		if *balanceAddr == "" {
 			cli.printUsage()
 			os.Exit(1)
