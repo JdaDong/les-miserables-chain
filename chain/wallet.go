@@ -4,8 +4,13 @@ import (
 	"crypto/ecdsa"
 	"crypto/elliptic"
 	"crypto/rand"
+	"les-miserables-chain/utils"
 	"log"
 )
+
+var addressHex = []byte{byte(0x00)}
+
+const addressChecksumLen = 4
 
 type Wallet struct {
 	PrivateKey ecdsa.PrivateKey //私钥
@@ -13,7 +18,7 @@ type Wallet struct {
 }
 
 //获取私钥-公钥对
-func newKeyPair() (ecdsa.PrivateKey, []byte) {
+func NewKeyPair() (ecdsa.PrivateKey, []byte) {
 	curve := elliptic.P256()                              //实现了secp256r1的椭圆曲线
 	private, err := ecdsa.GenerateKey(curve, rand.Reader) //根据曲线生成私钥
 	if err != nil {
@@ -25,6 +30,27 @@ func newKeyPair() (ecdsa.PrivateKey, []byte) {
 
 //初始化钱包
 func NewWallet() *Wallet {
-	privateKey, publicKey := newKeyPair()
+	privateKey, publicKey := NewKeyPair()
 	return &Wallet{privateKey, publicKey}
+}
+
+//获取地址
+func (w *Wallet) GetAddress() []byte {
+	//双哈希生成公钥hash
+	sha256Hash := utils.GetSha256(w.PublicKey)      //公钥第一次sha256
+	ripemd160Hash := utils.GetRipemd160(sha256Hash) //公钥第二次ripemd160
+
+	//Base58Check编码
+	dataWithVersion := append(addressHex, ripemd160Hash...) //给公钥hash加上版本前缀
+	checkSum := CheckSum(dataWithVersion)                   //根据公钥hash和前缀生成4位校验码
+	payload := append(dataWithVersion, checkSum...)
+	address := utils.Base58Encode(payload)
+	return address
+}
+
+//获取4位校验码
+func CheckSum(data []byte) []byte {
+	firstHash := utils.GetSha256(data)
+	secondHash := utils.GetSha256(firstHash)
+	return secondHash[:addressChecksumLen]
 }
