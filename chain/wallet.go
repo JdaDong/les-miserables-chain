@@ -1,9 +1,11 @@
 package chain
 
 import (
+	"bytes"
 	"crypto/ecdsa"
 	"crypto/elliptic"
 	"crypto/rand"
+	"fmt"
 	"les-miserables-chain/utils"
 	"log"
 )
@@ -53,4 +55,17 @@ func CheckSum(data []byte) []byte {
 	firstHash := utils.GetSha256(data)
 	secondHash := utils.GetSha256(firstHash)
 	return secondHash[:addressChecksumLen]
+}
+
+func CheckAddress(addr []byte) bool {
+	addressDecoded := utils.Base58Decode(addr)
+	fmt.Println(string(addressDecoded))
+
+	checkSumBytes := addressDecoded[len(addressDecoded)-addressChecksumLen:]
+	dataWithVersion := addressDecoded[:len(addressDecoded)-addressChecksumLen]
+	checkBytes := CheckSum(dataWithVersion)
+	if bytes.Compare(checkSumBytes, checkBytes) == 0 {
+		return true
+	}
+	return false
 }
