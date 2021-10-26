@@ -43,10 +43,12 @@ func NewWallets() (*Wallets, error) {
 func (w *Wallets) CreateNewWallet() {
 	wallet := NewWallet()
 	walletAddress := wallet.GetAddress()
-	fmt.Printf("Address: %s\n", walletAddress)
+	fmt.Printf("新钱包地址为: %s\n", walletAddress)
 
 	w.WalletMap[string(walletAddress)] = wallet
+	fmt.Println("钱包数据写入磁盘中")
 	w.SaveWallet()
+	fmt.Println("钱包数据写入完成")
 }
 
 //钱包持久化
