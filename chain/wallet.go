@@ -30,7 +30,7 @@ func NewKeyPair() (ecdsa.PrivateKey, []byte) {
 	return *private, pubKey
 }
 
-//初始化钱包
+//创建一个新钱包
 func NewWallet() *Wallet {
 	privateKey, publicKey := NewKeyPair()
 	return &Wallet{privateKey, publicKey}
@@ -57,6 +57,7 @@ func CheckSum(data []byte) []byte {
 	return secondHash[:addressChecksumLen]
 }
 
+//地址合法性校验
 func CheckAddress(addr []byte) bool {
 	addressDecoded := utils.Base58Decode(addr)
 	fmt.Println(string(addressDecoded))
