@@ -26,6 +26,7 @@ func (cli *CLI) Run() {
 	CmdInit := flag.NewFlagSet("init", flag.ExitOnError)             //初始化区块链
 	CmdGetBalance := flag.NewFlagSet("balance", flag.ExitOnError)    //获取账户余额
 	CmdSendToken := flag.NewFlagSet("send", flag.ExitOnError)        //转账
+	CmdCreateWallet := flag.NewFlagSet("a", flag.ExitOnError)
 
 	cbAddr := CmdInit.String("address", "", "创世区块奖励人")
 	balanceAddr := CmdGetBalance.String("addr", "", "获取指定地址的余额")
@@ -56,6 +57,11 @@ func (cli *CLI) Run() {
 		}
 	case "send":
 		err := CmdSendToken.Parse(os.Args[2:])
+		if err != nil {
+			log.Panic(err)
+		}
+	case "createwallet":
+		err := CmdCreateWallet.Parse(os.Args[2:])
 		if err != nil {
 			log.Panic(err)
 		}
@@ -90,5 +96,8 @@ func (cli *CLI) Run() {
 			os.Exit(1)
 		}
 		cli.sendToken(*sendFrom, *sendTo, *sendAmount)
+	}
+	if CmdCreateWallet.Parsed() {
+		cli.createWallet()
 	}
 }
