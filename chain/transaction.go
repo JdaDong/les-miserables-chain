@@ -2,6 +2,7 @@ package chain
 
 import (
 	"bytes"
+	"crypto/ecdsa"
 	"crypto/sha256"
 	"encoding/gob"
 	"encoding/hex"
@@ -102,4 +103,24 @@ func (tx *Transaction) SetTxHash() {
 	}
 	hash = sha256.Sum256(encoded.Bytes())
 	tx.TxHash = hash[:]
+}
+
+//交易签名
+func (tx *Transaction) Sign(privateKey ecdsa.PrivateKey, prevTXs map[string]Transaction) {
+	if tx.IsCoinbase() {
+		return
+	}
+	for _, in := range tx.TxInputs {
+		if prevTXs[hex.EncodeToString(in.TxID)].TxHash == nil {
+			log.Panic("Previous transaction is not correct")
+		}
+	}
+	txCopy :=tx.T
+}
+
+
+func(tx *Transaction)TrimmedCopy()Transaction{
+	var inputs []*TXInput
+	var outputs []*TXOutput
+	for ,
 }
