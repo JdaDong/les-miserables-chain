@@ -99,5 +99,5 @@ func (tx *Transaction) SetTxHash() {
 		log.Panic(err)
 	}
 	hash = sha256.Sum256(encoded.Bytes())
-	tx.Index = hash[:]
+	tx.TxHash = hash[:]
 }
