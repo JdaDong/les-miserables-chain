@@ -9,7 +9,7 @@ import (
 type TXInput struct {
 	TxID        []byte //交易hash id
 	OutputIndex int    //交易输出索引
-	ScriptSig   string //交易输入-数字签名
+	ScriptSig   []byte //交易输入-数字签名
 	PublicKey   []byte //公钥
 }
 
