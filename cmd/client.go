@@ -21,12 +21,13 @@ func (cli *CLI) validateArgs() {
 
 func (cli *CLI) Run() {
 	cli.validateArgs()
-	CmdPrintChain := flag.NewFlagSet("printchain", flag.ExitOnError) //打印区块链
-	CmdDelete := flag.NewFlagSet("delete", flag.ExitOnError)         //删除区块链
-	CmdInit := flag.NewFlagSet("init", flag.ExitOnError)             //初始化区块链
-	CmdGetBalance := flag.NewFlagSet("balance", flag.ExitOnError)    //获取账户余额
-	CmdSendToken := flag.NewFlagSet("send", flag.ExitOnError)        //转账
-	CmdCreateWallet := flag.NewFlagSet("a", flag.ExitOnError)
+	CmdPrintChain := flag.NewFlagSet("printchain", flag.ExitOnError)     //打印区块链
+	CmdDelete := flag.NewFlagSet("delete", flag.ExitOnError)             //删除区块链
+	CmdInit := flag.NewFlagSet("init", flag.ExitOnError)                 //初始化区块链
+	CmdGetBalance := flag.NewFlagSet("balance", flag.ExitOnError)        //获取账户余额
+	CmdSendToken := flag.NewFlagSet("send", flag.ExitOnError)            //转账
+	CmdCreateWallet := flag.NewFlagSet("createwallet", flag.ExitOnError) //创建钱包
+	CmdAddressLists := flag.NewFlagSet("addresslists", flag.ExitOnError) //获取所有钱包地址
 
 	cbAddr := CmdInit.String("address", "", "创世区块奖励人")
 	balanceAddr := CmdGetBalance.String("addr", "", "获取指定地址的余额")
@@ -65,6 +66,11 @@ func (cli *CLI) Run() {
 		if err != nil {
 			log.Panic(err)
 		}
+	case "addresslists":
+		err := CmdAddressLists.Parse(os.Args[2:])
+		if err != nil {
+			log.Panic(err)
+		}
 	default:
 		cli.printUsage()
 		os.Exit(1)
@@ -99,5 +105,8 @@ func (cli *CLI) Run() {
 	}
 	if CmdCreateWallet.Parsed() {
 		cli.createWallet()
+	}
+	if CmdAddressLists.Parsed() {
+		cli.addresslists()
 	}
 }
