@@ -1,6 +1,8 @@
 package chain
 
 import (
+	"bytes"
+	"crypto/ecdsa"
 	"encoding/hex"
 	"fmt"
 	"les-miserables-chain/database"
@@ -234,4 +236,39 @@ func (chain *Chain) MineBlock(from []string, to []string, amount []string) error
 		return err
 	}
 	return nil
+}
+
+//交易签名
+func (chain *Chain) SignTransaction(tx *Transaction, privateKey ecdsa.PrivateKey) {
+	if tx.IsCoinbase() {
+		return
+	}
+	prevTxs := make(map[string]Transaction)
+	for _, in := range tx.TxInputs {
+		prevTx, err := chain.FindTransaction(in.TxID)
+		if err != nil {
+			log.Panic(err)
+		}
+		prevTxs[hex.EncodeToString(prevTx.TxHash)] = prevTx
+	}
+	tx.Sign(privateKey, prevTxs)
+}
+
+func (chain *Chain) FindTransaction(ID []byte) (Transaction, error) {
+	bci := chain.Iterator()
+	for {
+		block := bci.NextBlock()
+		for _, tx := range block.Transactions {
+			if bytes.Compare(tx.TxHash, ID) == 0 {
+				return *tx, nil
+			}
+		}
+		var hashInt big.Int
+		hashInt.SetBytes((block.PrevBlockHash))
+
+		if big.NewInt(0).Cmp(&hashInt) == 0 {
+			break
+		}
+	}
+	return Transaction{}, nil
 }
