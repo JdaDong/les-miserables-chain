@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"time"
 )
 
 //钱包数据文件
@@ -46,8 +47,9 @@ func (w *Wallets) CreateNewWallet() {
 	fmt.Printf("新钱包地址为: %s\n", walletAddress)
 
 	w.WalletMap[string(walletAddress)] = wallet
-	fmt.Println("钱包数据写入磁盘中")
+	fmt.Println("钱包数据写入磁盘中...")
 	w.SaveWallet()
+	time.Sleep(3 * time.Second)
 	fmt.Println("钱包数据写入完成")
 }
 
