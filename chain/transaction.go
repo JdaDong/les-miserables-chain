@@ -3,6 +3,7 @@ package chain
 import (
 	"bytes"
 	"crypto/ecdsa"
+	"crypto/rand"
 	"crypto/sha256"
 	"encoding/gob"
 	"encoding/hex"
@@ -36,7 +37,7 @@ func NewCoinBaseTX(address string) *Transaction {
 		PublicKey:   []byte{},
 	}
 	//创世输出
-	txOut := NewTxOutput(10, address)
+	txOut := NewTxOutput(godMoney, address)
 	//创世交易
 	tx := Transaction{
 		TxHash:    []byte{},
@@ -71,7 +72,7 @@ func CreateTransaction(from, to string, amount int, chain *Chain, txs []*Transac
 		//2.1.构建交易输入
 		txHashBytes, _ := hex.DecodeString(txHash)
 		for _, index := range indexArray {
-			txInput := &TXInput{txHashBytes, index, nil, wallet.GetAddress()}
+			txInput := &TXInput{txHashBytes, index, nil, wallet.PublicKey}
 			txInputs = append(txInputs, txInput)
 		}
 	}
@@ -107,19 +108,34 @@ func (tx *Transaction) SetTxHash() {
 
 //交易签名
 func (tx *Transaction) Sign(privateKey ecdsa.PrivateKey, prevTXs map[string]Transaction) {
+	//如果是创世交易，不进行签名
 	if tx.IsCoinbase() {
 		return
 	}
+	//判断交易是否为空
 	for _, in := range tx.TxInputs {
 		if prevTXs[hex.EncodeToString(in.TxID)].TxHash == nil {
 			log.Panic("Previous transaction is not correct")
 		}
 	}
-	txCopy := tx.T
+	txCopy := tx.TransactionCopy()
+	for inID, vin := range txCopy.TxInputs {
+		prevTXs := prevTXs[hex.EncodeToString(vin.TxID)]
+		txCopy.TxInputs[inID].ScriptSig = nil
+		txCopy.TxInputs[inID].PublicKey = prevTXs.TxOutputs[vin.OutputIndex].ScriptPubKey
+		txCopy.TxHash = txCopy.Hash()
+		txCopy.TxInputs[inID].PublicKey = nil
+		r, s, err := ecdsa.Sign(rand.Reader, &privateKey, txCopy.TxHash)
+		if err != nil {
+			log.Panic(err)
+		}
+		signature := append(r.Bytes(), s.Bytes()...)
+		tx.TxInputs[inID].ScriptSig = signature
+	}
 }
 
 //拷贝新的Transaction用于数字签名
-func (tx *Transaction) TrimmedCopy() Transaction {
+func (tx *Transaction) TransactionCopy() Transaction {
 	var inputs []*TXInput
 	var outputs []*TXOutput
 
@@ -133,4 +149,25 @@ func (tx *Transaction) TrimmedCopy() Transaction {
 	txCopy := Transaction{tx.TxHash, inputs, outputs}
 
 	return txCopy
+}
+
+func (tx *Transaction) Hash() []byte {
+	txCopy := tx
+
+	txCopy.TxHash = []byte{}
+
+	hash := sha256.Sum256(txCopy.Serialize())
+	return hash[:]
+}
+
+func (tx *Transaction) Serialize() []byte {
+	var encoded bytes.Buffer
+
+	enc := gob.NewEncoder(&encoded)
+	err := enc.Encode(tx)
+	if err != nil {
+		log.Panic(err)
+	}
+
+	return encoded.Bytes()
 }

@@ -6,6 +6,7 @@ import (
 	"encoding/hex"
 	"fmt"
 	"les-miserables-chain/database"
+	"les-miserables-chain/utils"
 	"log"
 	"math/big"
 	"strconv"
@@ -34,7 +35,7 @@ func InitBlockChain(to string) {
 		if b == nil {
 			fmt.Println("Creating the genesis block.....")
 			//创世区块集成交易
-			coinbaseTx := NewCoinBaseTX(to, "In a soldier's stance, I aimed my hand at the mongrel dogs who teach")
+			coinbaseTx := NewCoinBaseTX(to)
 			genesisBlock := NewGenesisBlock(coinbaseTx)
 			//bucket不存在，创建一个桶
 			b, err := tx.CreateBucket([]byte(database.BlockBucket))
@@ -108,11 +109,11 @@ func (chain *Chain) FindUnspentTransactions(address string) []Transaction {
 			//遍历区块交易信息
 			for _, transaction := range block.Transactions {
 				//将交易ID转换为16进制
-				index := hex.EncodeToString(transaction.Index)
+				index := hex.EncodeToString(transaction.TxHash)
 				//Outputs的label
 			Outputs:
 				//遍历交易输出
-				for outIdx, out := range transaction.Outputs {
+				for outIdx, out := range transaction.TxOutputs {
 					//判断是否已经被花费？
 					if spentTxs[index] != nil {
 						//遍历花费交易
@@ -123,16 +124,17 @@ func (chain *Chain) FindUnspentTransactions(address string) []Transaction {
 						}
 					}
 					//如果是交易输出的解锁对象，则加入未花费交易
-					if out.UnlockOutput(address) {
+					if out.UnLockScriptPubKeyWithAddress(address) {
 						unspentTxs = append(unspentTxs, *transaction)
 					}
 				}
 				//判断是否是coinbase交易
 				if transaction.IsCoinbase() == false {
 					//遍历交易输入
-					for _, in := range transaction.Inputs {
+					for _, in := range transaction.TxInputs {
 						//如果是交易输入解锁对象，则加入已花费交易中
-						if in.UnlockInput(address) {
+						publicKeyHash := utils.Base58Decode([]byte(address))
+						if in.UnlockPublicKeyHash(publicKeyHash) {
 							//inTxID := hex.EncodeToString(in.TxID)
 							spentTxs[index] = append(spentTxs[index], in.OutputIndex)
 						}
@@ -167,10 +169,10 @@ Work:
 	//遍历未花费交易
 	for _, tx := range unspentTxs {
 		//获取未花费交易的交易ID
-		txh := hex.EncodeToString(tx.Index)
+		txh := hex.EncodeToString(tx.TxHash)
 		//遍历该未花费交易下的未花费交易输出
-		for outIdx, out := range tx.Outputs {
-			if out.UnlockOutput(address) && accumulated < amount {
+		for outIdx, out := range tx.TxOutputs {
+			if out.UnLockScriptPubKeyWithAddress(address) && accumulated < amount {
 				accumulated += out.Value
 				unspentOutputs[txh] = append(unspentOutputs[txh], outIdx)
 				if accumulated >= amount {
@@ -264,7 +266,7 @@ func (chain *Chain) FindTransaction(ID []byte) (Transaction, error) {
 			}
 		}
 		var hashInt big.Int
-		hashInt.SetBytes((block.PrevBlockHash))
+		hashInt.SetBytes(block.BlockPreHash)
 
 		if big.NewInt(0).Cmp(&hashInt) == 0 {
 			break
