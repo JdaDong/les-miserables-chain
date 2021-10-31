@@ -115,12 +115,22 @@ func (tx *Transaction) Sign(privateKey ecdsa.PrivateKey, prevTXs map[string]Tran
 			log.Panic("Previous transaction is not correct")
 		}
 	}
-	txCopy :=tx.T
+	txCopy := tx.T
 }
 
-
-func(tx *Transaction)TrimmedCopy()Transaction{
+//拷贝新的Transaction用于数字签名
+func (tx *Transaction) TrimmedCopy() Transaction {
 	var inputs []*TXInput
 	var outputs []*TXOutput
-	for ,
+
+	for _, vin := range tx.TxInputs {
+		inputs = append(inputs, &TXInput{vin.TxID, vin.OutputIndex, nil, nil})
+	}
+
+	for _, vout := range tx.TxOutputs {
+		outputs = append(outputs, &TXOutput{vout.Value, vout.ScriptPubKey})
+	}
+	txCopy := Transaction{tx.TxHash, inputs, outputs}
+
+	return txCopy
 }

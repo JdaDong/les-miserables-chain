@@ -8,7 +8,7 @@ import (
 //UTXO交易输出
 type TXOutput struct {
 	Value        int
-	ScriptPubKey []byte
+	ScriptPubKey []byte //公钥hash
 }
 
 ////解锁交易输出
