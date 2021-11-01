@@ -3,6 +3,7 @@ package chain
 import (
 	"encoding/hex"
 	"fmt"
+	"les-miserables-chain/utils"
 	"math/big"
 	"os"
 )
@@ -24,8 +25,10 @@ func (chain *Chain) UnUTXOs(address string, txs []*Transaction) []*UTXO {
 	//1.遍历同一区块的前几个交易输入
 	for _, tx := range txs {
 		if tx.IsCoinbase() == false {
-			for _, in := range tx.Inputs {
-				if in.UnlockInput(address) {
+			for _, in := range tx.TxInputs {
+				publicKeyHash := utils.Base58Decode([]byte(address))
+				ripemd160Hash := publicKeyHash[1 : len(publicKeyHash)-4]
+				if in.UnlockPublicKeyHash(ripemd160Hash) {
 					key := hex.EncodeToString(in.TxID)
 					spentTXOutputs[key] = append(spentTXOutputs[key], in.OutputIndex)
 				}
@@ -36,15 +39,15 @@ func (chain *Chain) UnUTXOs(address string, txs []*Transaction) []*UTXO {
 	//2.遍历同一区块的前几个交易输出
 	for _, tx := range txs {
 	Work1:
-		for index, out := range tx.Outputs {
-			if out.UnlockOutput(address) {
+		for index, out := range tx.TxOutputs {
+			if out.UnLockScriptPubKeyWithAddress(address) {
 				if len(spentTXOutputs) == 0 {
-					utxo := &UTXO{tx.Index, index, out}
+					utxo := &UTXO{tx.TxHash, index, out}
 					unUTXOs = append(unUTXOs, utxo)
 				} else {
 
 					for hash, indexArray := range spentTXOutputs {
-						txHashStr := hex.EncodeToString(tx.Index)
+						txHashStr := hex.EncodeToString(tx.TxHash)
 						if hash == txHashStr {
 							var isUnSpentUTXO bool
 							for _, outIndex := range indexArray {
@@ -53,12 +56,12 @@ func (chain *Chain) UnUTXOs(address string, txs []*Transaction) []*UTXO {
 									continue Work1
 								}
 								if isUnSpentUTXO == false {
-									utxo := &UTXO{tx.Index, index, out}
+									utxo := &UTXO{tx.TxHash, index, out}
 									unUTXOs = append(unUTXOs, utxo)
 								}
 							}
 						} else {
-							utxo := &UTXO{tx.Index, index, out}
+							utxo := &UTXO{tx.TxHash, index, out}
 							unUTXOs = append(unUTXOs, utxo)
 						}
 					}
@@ -78,8 +81,10 @@ func (chain *Chain) UnUTXOs(address string, txs []*Transaction) []*UTXO {
 		for i := len(block.Transactions) - 1; i >= 0; i-- {
 			tx := block.Transactions[i]
 			if tx.IsCoinbase() == false {
-				for _, in := range tx.Inputs {
-					if in.UnlockInput(address) {
+				for _, in := range tx.TxInputs {
+					publicKeyHash := utils.Base58Decode([]byte(address))
+					ripemd160Hash := publicKeyHash[1 : len(publicKeyHash)-4]
+					if in.UnlockPublicKeyHash(ripemd160Hash) {
 
 						key := hex.EncodeToString(in.TxID)
 
@@ -90,9 +95,9 @@ func (chain *Chain) UnUTXOs(address string, txs []*Transaction) []*UTXO {
 			}
 
 		work:
-			for index, out := range tx.Outputs {
+			for index, out := range tx.TxOutputs {
 
-				if out.UnlockOutput(address) {
+				if out.UnLockScriptPubKeyWithAddress(address) {
 
 					if len(spentTXOutputs) != 0 {
 
@@ -101,7 +106,7 @@ func (chain *Chain) UnUTXOs(address string, txs []*Transaction) []*UTXO {
 						for txHash, indexArray := range spentTXOutputs {
 
 							for _, i := range indexArray {
-								if index == i && txHash == hex.EncodeToString(tx.Index) {
+								if index == i && txHash == hex.EncodeToString(tx.TxHash) {
 									isSpentUTXO = true
 									continue work
 								}
@@ -110,12 +115,12 @@ func (chain *Chain) UnUTXOs(address string, txs []*Transaction) []*UTXO {
 
 						if isSpentUTXO == false {
 
-							utxo := &UTXO{tx.Index, index, out}
+							utxo := &UTXO{tx.TxHash, index, out}
 							unUTXOs = append(unUTXOs, utxo)
 
 						}
 					} else {
-						utxo := &UTXO{tx.Index, index, out}
+						utxo := &UTXO{tx.TxHash, index, out}
 						unUTXOs = append(unUTXOs, utxo)
 					}
 

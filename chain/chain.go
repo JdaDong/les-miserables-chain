@@ -134,7 +134,8 @@ func (chain *Chain) FindUnspentTransactions(address string) []Transaction {
 					for _, in := range transaction.TxInputs {
 						//如果是交易输入解锁对象，则加入已花费交易中
 						publicKeyHash := utils.Base58Decode([]byte(address))
-						if in.UnlockPublicKeyHash(publicKeyHash) {
+						ripemd160Hash := publicKeyHash[1 : len(publicKeyHash)-4]
+						if in.UnlockPublicKeyHash(ripemd160Hash) {
 							//inTxID := hex.EncodeToString(in.TxID)
 							spentTxs[index] = append(spentTxs[index], in.OutputIndex)
 						}
