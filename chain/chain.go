@@ -243,6 +243,7 @@ func (chain *Chain) MineBlock(from []string, to []string, amount []string) error
 
 //交易签名
 func (chain *Chain) SignTransaction(tx *Transaction, privateKey ecdsa.PrivateKey) {
+	//如果是创世交易，则不进行签名
 	if tx.IsCoinbase() {
 		return
 	}
@@ -257,6 +258,7 @@ func (chain *Chain) SignTransaction(tx *Transaction, privateKey ecdsa.PrivateKey
 	tx.Sign(privateKey, prevTxs)
 }
 
+//查找旧交易
 func (chain *Chain) FindTransaction(ID []byte) (Transaction, error) {
 	bci := chain.Iterator()
 	for {

@@ -27,7 +27,11 @@ function (block *Block) SetHash()
 
 
 
-## 交易transaction
+## 交易签名
 
-### UTXO模型结构体
+### 转账交易
+
+```go
+func CreateTransaction(from, to string, amount int, chain *Chain, txs []*Transaction) *Transaction 
+```
 

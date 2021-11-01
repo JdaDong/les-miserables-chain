@@ -59,7 +59,10 @@ func NewCoinBaseTX(address string) *Transaction {
 
 //转账-创建新的交易
 func CreateTransaction(from, to string, amount int, chain *Chain, txs []*Transaction) *Transaction {
-	wallets, _ := NewWallets()
+	wallets, err := NewWallets()
+	if err != nil {
+		log.Panic(err)
+	}
 	wallet := wallets.WalletMap[from]
 	//1.获取刚好能用的金额和合规的UTXO输出
 	money, validateUTXO := chain.SpendableUTXOs(from, amount, txs)
@@ -88,6 +91,7 @@ func CreateTransaction(from, to string, amount int, chain *Chain, txs []*Transac
 	tx := &Transaction{[]byte{}, txInputs, txOutputs}
 
 	tx.SetTxHash()
+	//交易签名
 	chain.SignTransaction(tx, wallet.PrivateKey)
 	return tx
 
