@@ -3,12 +3,14 @@ package chain
 import (
 	"bytes"
 	"crypto/ecdsa"
+	"crypto/elliptic"
 	"crypto/rand"
 	"crypto/sha256"
 	"encoding/gob"
 	"encoding/hex"
 	"fmt"
 	"log"
+	"math/big"
 )
 
 //UTXO交易数据
@@ -174,4 +176,43 @@ func (tx *Transaction) Serialize() []byte {
 	}
 
 	return encoded.Bytes()
+}
+
+//数字签名验证
+func (tx *Transaction) Verify(prevTxs map[string]Transaction) bool {
+	if tx.IsCoinbase() {
+		return true
+	}
+	for _, vin := range tx.TxInputs {
+		if prevTxs[hex.EncodeToString(vin.TxID)].TxHash == nil {
+			log.Panic("Previous transaction is not correct")
+		}
+	}
+	txCopy := tx.TransactionCopy()
+	curve := elliptic.P256()
+	for vinID, vin := range tx.TxInputs {
+		prevTx := prevTxs[hex.EncodeToString(vin.TxID)]
+		txCopy.TxInputs[vinID].ScriptSig = nil
+		txCopy.TxInputs[vinID].PublicKey = prevTx.TxOutputs[vin.OutputIndex].ScriptPubKey
+		txCopy.TxHash = txCopy.Hash()
+		txCopy.TxInputs[vinID].PublicKey = nil
+
+		r := big.Int{}
+		s := big.Int{}
+		sigLen := len(vin.ScriptSig)
+		r.SetBytes(vin.ScriptSig[:(sigLen / 2)])
+		s.SetBytes(vin.ScriptSig[(sigLen / 2):])
+
+		x := big.Int{}
+		y := big.Int{}
+		keyLen := len(vin.PublicKey)
+		x.SetBytes(vin.PublicKey[:(keyLen / 2)])
+		y.SetBytes(vin.PublicKey[(keyLen / 2):])
+
+		rawPubkey := ecdsa.PublicKey{curve, &x, &y}
+		if ecdsa.Verify(&rawPubkey, txCopy.TxHash, &r, &s) == false {
+			return false
+		}
+	}
+	return true
 }

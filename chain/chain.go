@@ -223,6 +223,12 @@ func (chain *Chain) MineBlock(from []string, to []string, amount []string) error
 	if err != nil {
 		return err
 	}
+	//区块签名验证
+	for _, tx := range txs {
+		if chain.VerifyTransaction(tx) != true {
+			log.Panic("Invalid transaction.")
+		}
+	}
 	//3.根据当前区块构建新的区块
 	block = NewBlock(txs, block.BlockCurrentHash)
 
@@ -276,4 +282,17 @@ func (chain *Chain) FindTransaction(ID []byte) (Transaction, error) {
 		}
 	}
 	return Transaction{}, nil
+}
+
+func (chain *Chain) VerifyTransaction(tx *Transaction) bool {
+	prevTxs := make(map[string]Transaction)
+
+	for _, vin := range tx.TxInputs {
+		prevTx, err := chain.FindTransaction(vin.TxID)
+		if err != nil {
+			log.Panic(err)
+		}
+		prevTxs[hex.EncodeToString(prevTx.TxHash)] = prevTx
+	}
+	return tx.Verify(prevTxs)
 }
