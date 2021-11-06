@@ -212,7 +212,9 @@ func (chain *Chain) MineBlock(from []string, to []string, amount []string) error
 		txs = append(txs, tx)
 		//fmt.Println(tx)
 	}
-
+	//增加交易奖励
+	tx := NewCoinBaseTX(from[0])
+	txs = append(txs, tx)
 	var block *Block
 	//2.获取最新高度的区块
 	err := chain.DB.View(func(tx *bolt.Tx) error {
