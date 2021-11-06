@@ -21,7 +21,7 @@ type Chain struct {
 }
 
 //创世区块链
-func InitBlockChain(to string) {
+func InitBlockChain(to string) *Chain {
 	var lastHash []byte
 
 	db, err := bolt.Open(database.DbFile, 0600, nil)
@@ -61,6 +61,10 @@ func InitBlockChain(to string) {
 	})
 	if err != nil {
 		log.Panic(err)
+	}
+	return &Chain{
+		LastHash: lastHash,
+		DB:       db,
 	}
 }
 
@@ -295,4 +299,63 @@ func (chain *Chain) VerifyTransaction(tx *Transaction) bool {
 		prevTxs[hex.EncodeToString(prevTx.TxHash)] = prevTx
 	}
 	return tx.Verify(prevTxs)
+}
+
+//查找UTXO的map
+func (chain *Chain) FindUTXOMap() map[string]*TXOutputs {
+	bcIterator := chain.Iterator()
+
+	//已花费UTXO
+	spentUTXOMap := make(map[string][]*TXInput)
+
+	utxoMaps := make(map[string]*TXOutputs)
+
+	for {
+		//从当前区块开始遍历
+		block := bcIterator.NextBlock()
+		for i := len(block.Transactions) - 1; i >= 0; i-- {
+			txOutputs := &TXOutputs{[]*UTXO{}}
+			tx := block.Transactions[i]
+			if tx.IsCoinbase() == false {
+				for _, vin := range tx.TxInputs {
+					txHash := hex.EncodeToString(vin.TxID)
+					spentUTXOMap[txHash] = append(spentUTXOMap[txHash], vin)
+				}
+			}
+			txHash := hex.EncodeToString(tx.TxHash)
+
+		Work:
+			for index, out := range tx.TxOutputs {
+				txInputs := spentUTXOMap[txHash]
+				if len(txInputs) > 0 {
+					isSpent := false
+					for _, in := range txInputs {
+						outPublicKey := out.ScriptPubKey
+						inPublicKey := in.PublicKey
+						if bytes.Compare(outPublicKey, utils.GetRipemd160(inPublicKey)) == 0 {
+							if index == in.OutputIndex {
+								isSpent = true
+								continue Work
+							}
+						}
+					}
+					if isSpent == false {
+						utxo := &UTXO{tx.TxHash, index, out}
+						txOutputs.UTXOS = append(txOutputs.UTXOS, utxo)
+					}
+				} else {
+					utxo := &UTXO{tx.TxHash, index, out}
+					txOutputs.UTXOS = append(txOutputs.UTXOS, utxo)
+				}
+			}
+			utxoMaps[txHash] = txOutputs
+		}
+		var hashInt big.Int
+		hashInt.SetBytes(block.BlockPreHash)
+		if hashInt.Cmp(big.NewInt(0)) == 0 {
+			break
+		}
+	}
+	return utxoMaps
+
 }
