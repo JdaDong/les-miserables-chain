@@ -36,3 +36,35 @@ func (utxoRecord *UTXORecord) ResetUTXORecord() {
 		log.Panic(err)
 	}
 }
+
+//获取地址余额(大量数据)
+func (utxoRecord *UTXORecord) GetBalance(address string) int {
+	UTXOS := utxoRecord.findUTXO(address)
+	var amount int
+	for _, utxo := range UTXOS {
+		amount += utxo.OutPut.Value
+	}
+	return amount
+}
+
+func (utxoRecord *UTXORecord) findUTXO(address string) []*UTXO {
+	var utxos []*UTXO
+	err := utxoRecord.Blockchain.DB.View(func(tx *bolt.Tx) error {
+		b := tx.Bucket([]byte(database.UTXOBucket))
+		c := b.Cursor()
+
+		for k, v := c.First(); k != nil; k, v = c.Next() {
+			txOutputs := DeserializeTXOutputs(v)
+			for _, utxo := range txOutputs.UTXOS {
+				if utxo.OutPut.UnLockScriptPubKeyWithAddress(address) {
+					utxos = append(utxos, utxo)
+				}
+			}
+		}
+		return nil
+	})
+	if err != nil {
+		log.Panic(err)
+	}
+	return utxos
+}

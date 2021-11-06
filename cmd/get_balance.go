@@ -11,7 +11,8 @@ func (cli *CLI) getBalance(address string) {
 	blockchain := chain.BlockchainObject()
 	defer blockchain.DB.Close()
 
-	amount := blockchain.GetBalance(address)
+	utxoRecord := &chain.UTXORecord{Blockchain: blockchain}
+	amount := utxoRecord.GetBalance(address)
 
 	fmt.Printf("查询结果:%d\n", amount)
 }

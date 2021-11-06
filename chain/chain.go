@@ -189,7 +189,7 @@ Work:
 	return accumulated, unspentOutputs
 }
 
-//获取地址余额
+//获取地址余额(低数据量)
 func (chain *Chain) GetBalance(address string) int {
 	utxos := chain.UnUTXOs(address, []*Transaction{})
 	var amount int

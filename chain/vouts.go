@@ -26,15 +26,15 @@ func (txOutputs *TXOutputs) Serialize() []byte {
 }
 
 // 反序列化
-func (txOutputs *TXOutputs) Deserialize(txOutputsBytes []byte) *TXOutputs {
+func DeserializeTXOutputs(txOutputsBytes []byte) *TXOutputs {
 
-	var result TXOutputs
+	var txOutputs TXOutputs
 
 	decoder := gob.NewDecoder(bytes.NewReader(txOutputsBytes))
-	err := decoder.Decode(&result)
+	err := decoder.Decode(&txOutputs)
 	if err != nil {
 		log.Panic(err)
 	}
 
-	return &result
+	return &txOutputs
 }
