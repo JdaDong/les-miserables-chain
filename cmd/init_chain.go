@@ -8,5 +8,8 @@ import (
 //初始化区块链
 func (cli *CLI) initialize(address string) {
 	fmt.Println("初始化区块链中...")
-	chain.InitBlockChain(address)
+	blockchain := chain.InitBlockChain(address)
+	defer blockchain.DB.Close()
+	utxoRecord := &chain.UTXORecord{Blockchain: blockchain}
+	utxoRecord.ResetUTXORecord()
 }
