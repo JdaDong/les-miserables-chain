@@ -201,13 +201,12 @@ func (chain *Chain) GetBalance(address string) int {
 
 //区块派生
 func (chain *Chain) MineBlock(from []string, to []string, amount []string) error {
-
+	utxoRecord := &UTXORecord{chain}
 	var txs []*Transaction
-
 	//1.遍历多方转账，创建交易
 	for index, address := range from {
 		value, _ := strconv.Atoi(amount[index])
-		tx := CreateTransaction(address, to[index], value, chain, txs)
+		tx := CreateTransaction(address, to[index], value, utxoRecord, txs)
 		//levy page 4 {}
 		txs = append(txs, tx)
 		//fmt.Println(tx)
@@ -215,6 +214,7 @@ func (chain *Chain) MineBlock(from []string, to []string, amount []string) error
 	//增加交易奖励
 	tx := NewCoinBaseTX(from[0])
 	txs = append(txs, tx)
+
 	var block *Block
 	//2.获取最新高度的区块
 	err := chain.DB.View(func(tx *bolt.Tx) error {
@@ -230,10 +230,12 @@ func (chain *Chain) MineBlock(from []string, to []string, amount []string) error
 		return err
 	}
 	//区块签名验证
+	var txs0 []*Transaction
 	for _, tx := range txs {
-		if chain.VerifyTransaction(tx) != true {
+		if chain.VerifyTransaction(tx, txs0) != true {
 			log.Panic("Invalid transaction.")
 		}
+		txs0 = append(txs0, tx)
 	}
 	//3.根据当前区块构建新的区块
 	block = NewBlock(txs, block.BlockCurrentHash)
