@@ -2,7 +2,9 @@ package cmd
 
 import (
 	"flag"
+	"fmt"
 	"les-miserables-chain/chain"
+	"les-miserables-chain/utils"
 	"log"
 	"os"
 )
@@ -33,7 +35,7 @@ func (cli *CLI) Run() {
 	balanceAddr := CmdGetBalance.String("addr", "", "获取指定地址的余额")
 	sendFrom := CmdSendToken.String("from", "", "转账源地址")
 	sendTo := CmdSendToken.String("to", "", "转账目的地址")
-	sendAmount := CmdSendToken.Int("amount", 0, "转账金额")
+	sendAmount := CmdSendToken.String("amount", "", "转账金额")
 
 	switch os.Args[1] {
 	case "printchain":
@@ -97,11 +99,21 @@ func (cli *CLI) Run() {
 		cli.getBalance(*balanceAddr)
 	}
 	if CmdSendToken.Parsed() {
-		if *sendFrom == "" || *sendTo == "" || *sendAmount == 0 {
+		if *sendFrom == "" || *sendTo == "" || *sendAmount == "" {
 			cli.printUsage()
 			os.Exit(1)
 		}
-		cli.sendToken(*sendFrom, *sendTo, *sendAmount)
+		from := utils.JsonToArray(*sendFrom)
+		to := utils.JsonToArray(*sendTo)
+		for index, fromAddress := range from {
+			if chain.CheckAddress([]byte(fromAddress)) == false || chain.CheckAddress([]byte(to[index])) == false {
+				fmt.Println("地址格式错误!")
+				cli.printUsage()
+				os.Exit(1)
+			}
+		}
+		amount := utils.JsonToArray(*sendAmount)
+		cli.sendToken(from, to, amount)
 	}
 	if CmdCreateWallet.Parsed() {
 		cli.createWallet()
