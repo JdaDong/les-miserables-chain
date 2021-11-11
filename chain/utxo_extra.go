@@ -189,8 +189,10 @@ func (utxoRecord *UTXORecord) Update() {
 		}
 	}
 
+	//遍历最新区块
 	for _, tx := range block.Transactions {
 		utxos := []*UTXO{}
+		//获取未花费utxo
 		for index, out := range tx.TxOutputs {
 			isSpent := false
 			for _, in := range ins {
@@ -209,9 +211,11 @@ func (utxoRecord *UTXORecord) Update() {
 			outsMap[txHashHex] = &TXOutputs{utxos}
 		}
 	}
+	//更新数据桶
 	err := utxoRecord.Blockchain.DB.Update(func(tx *bolt.Tx) error {
 		b := tx.Bucket([]byte(database.UTXOBucket))
 		if b != nil {
+			//遍历交易输入
 			for _, in := range ins {
 				txOutputsBytes := b.Get(in.TxID)
 				if len(txOutputsBytes) == 0 {
