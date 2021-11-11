@@ -256,14 +256,14 @@ func (chain *Chain) MineBlock(from []string, to []string, amount []string) error
 }
 
 //交易签名
-func (chain *Chain) SignTransaction(tx *Transaction, privateKey ecdsa.PrivateKey) {
+func (chain *Chain) SignTransaction(tx *Transaction, privateKey ecdsa.PrivateKey, txs []*Transaction) {
 	//如果是创世交易，则不进行签名
 	if tx.IsCoinbase() {
 		return
 	}
 	prevTxs := make(map[string]Transaction)
 	for _, in := range tx.TxInputs {
-		prevTx, err := chain.FindTransaction(in.TxID)
+		prevTx, err := chain.FindTransaction(in.TxID, txs)
 		if err != nil {
 			log.Panic(err)
 		}
@@ -273,7 +273,13 @@ func (chain *Chain) SignTransaction(tx *Transaction, privateKey ecdsa.PrivateKey
 }
 
 //查找旧交易
-func (chain *Chain) FindTransaction(ID []byte) (Transaction, error) {
+func (chain *Chain) FindTransaction(ID []byte, txs []*Transaction) (Transaction, error) {
+	for _, tx := range txs {
+		if bytes.Compare(tx.TxHash, ID) == 0 {
+			return *tx, nil
+		}
+	}
+
 	bci := chain.Iterator()
 	for {
 		block := bci.NextBlock()
@@ -292,11 +298,11 @@ func (chain *Chain) FindTransaction(ID []byte) (Transaction, error) {
 	return Transaction{}, nil
 }
 
-func (chain *Chain) VerifyTransaction(tx *Transaction) bool {
+func (chain *Chain) VerifyTransaction(tx *Transaction, txs []*Transaction) bool {
 	prevTxs := make(map[string]Transaction)
 
 	for _, vin := range tx.TxInputs {
-		prevTx, err := chain.FindTransaction(vin.TxID)
+		prevTx, err := chain.FindTransaction(vin.TxID, txs)
 		if err != nil {
 			log.Panic(err)
 		}

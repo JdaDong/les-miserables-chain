@@ -94,7 +94,7 @@ func CreateTransaction(from, to string, amount int, utxoRecord *UTXORecord, txs 
 
 	tx.SetTxHash()
 	//交易签名
-	utxoRecord.Blockchain.SignTransaction(tx, wallet.PrivateKey)
+	utxoRecord.Blockchain.SignTransaction(tx, wallet.PrivateKey, txs)
 	return tx
 
 }

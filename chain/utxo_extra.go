@@ -1,6 +1,7 @@
 package chain
 
 import (
+	"bytes"
 	"encoding/hex"
 	"les-miserables-chain/database"
 	"les-miserables-chain/utils"
@@ -175,4 +176,74 @@ func (utxoRecord *UTXORecord) FindSpendableUTXOs(from string, amount int, txs []
 		log.Panic("交易失败，余额不足!")
 	}
 	return money, spentableUTXO
+}
+
+func (utxoRecord *UTXORecord) Update() {
+	block := utxoRecord.Blockchain.Iterator().NextBlock()
+	var ins []*TXInput
+	outsMap := make(map[string]*TXOutputs)
+	//查找需要删除的交易输入数据
+	for _, tx := range block.Transactions {
+		for _, in := range tx.TxInputs {
+			ins = append(ins, in)
+		}
+	}
+
+	for _, tx := range block.Transactions {
+		utxos := []*UTXO{}
+		for index, out := range tx.TxOutputs {
+			isSpent := false
+			for _, in := range ins {
+				if in.OutputIndex == index && bytes.Compare(tx.TxHash, in.TxID) == 0 {
+					isSpent = true
+					continue
+				}
+			}
+			if isSpent == false {
+				utxo := &UTXO{tx.TxHash, index, out}
+				utxos = append(utxos, utxo)
+			}
+		}
+		if len(utxos) > 0 {
+			txHashHex := hex.EncodeToString(tx.TxHash)
+			outsMap[txHashHex] = &TXOutputs{utxos}
+		}
+	}
+	err := utxoRecord.Blockchain.DB.Update(func(tx *bolt.Tx) error {
+		b := tx.Bucket([]byte(database.UTXOBucket))
+		if b != nil {
+			for _, in := range ins {
+				txOutputsBytes := b.Get(in.TxID)
+				if len(txOutputsBytes) == 0 {
+					continue
+				}
+				txOutputs := DeserializeTXOutputs(txOutputsBytes)
+				UTXOS := []*UTXO{}
+				toDelete := false
+				for _, utxo := range txOutputs.UTXOS {
+					if in.OutputIndex == utxo.Index && bytes.Compare(utxo.OutPut.ScriptPubKey, utils.GetRipemd160(in.PublicKey)) == 0 {
+						toDelete = true
+					} else {
+						UTXOS = append(UTXOS, utxo)
+					}
+				}
+				if toDelete {
+					_ = b.Delete(in.TxID)
+					if len(UTXOS) > 0 {
+						prevTXOutputs := outsMap[hex.EncodeToString(in.TxID)]
+						prevTXOutputs.UTXOS = append(prevTXOutputs.UTXOS, UTXOS...)
+						outsMap[hex.EncodeToString(in.TxID)] = prevTXOutputs
+					}
+				}
+			}
+			for keyHash, outPuts := range outsMap {
+				keyHashBytes, _ := hex.DecodeString(keyHash)
+				_ = b.Put(keyHashBytes, outPuts.Serialize())
+			}
+		}
+		return nil
+	})
+	if err != nil {
+		log.Panic(err)
+	}
 }
