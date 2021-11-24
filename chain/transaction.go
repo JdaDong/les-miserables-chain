@@ -50,8 +50,8 @@ func NewCoinBaseTX(address string) *Transaction {
 	tx.SetTxHash()
 
 	fmt.Println("=======生成创世交易=======")
-	fmt.Printf("创世地址:%s", address)
-	fmt.Printf("交易号:%x\n", tx.TxHash)
+	fmt.Printf("创世者地址:%s\n", address)
+	fmt.Printf("创世交易哈希:%s\n", hex.EncodeToString(tx.TxHash))
 	fmt.Println("交易输入:", tx.TxInputs)
 	fmt.Println("交易输出:", tx.TxOutputs)
 	fmt.Println("=========================")
