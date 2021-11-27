@@ -21,8 +21,17 @@ func (cli *CLI) validateArgs() {
 	}
 }
 
+//客户端运行
 func (cli *CLI) Run() {
 	cli.validateArgs()
+
+	nodeID := os.Getenv("NODE_ID")
+	if nodeID == "" {
+		fmt.Printf("请先完成本机节点ID的相关配置!\n")
+		os.Exit(1)
+	}
+	fmt.Printf("当前运行节点：%s\n", nodeID)
+
 	CmdPrintChain := flag.NewFlagSet("printchain", flag.ExitOnError)     //打印区块链
 	CmdDelete := flag.NewFlagSet("delete", flag.ExitOnError)             //删除区块链
 	CmdInit := flag.NewFlagSet("init", flag.ExitOnError)                 //初始化区块链
@@ -79,6 +88,11 @@ func (cli *CLI) Run() {
 	}
 	if CmdInit.Parsed() {
 		if *cbAddr == "" {
+			cli.printUsage()
+			os.Exit(1)
+		}
+		if !chain.CheckAddress([]byte(*cbAddr)) {
+			fmt.Println("地址格式错误!")
 			cli.printUsage()
 			os.Exit(1)
 		}
