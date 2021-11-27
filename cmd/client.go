@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"les-miserables-chain/chain"
+	"les-miserables-chain/database"
 	"les-miserables-chain/utils"
 	"log"
 	"os"
@@ -31,7 +32,7 @@ func (cli *CLI) Run() {
 		os.Exit(1)
 	}
 	fmt.Printf("当前运行节点：%s\n", nodeID)
-
+	database.GenerateDatabase(nodeID)
 	CmdPrintChain := flag.NewFlagSet("printchain", flag.ExitOnError)     //打印区块链
 	CmdDelete := flag.NewFlagSet("delete", flag.ExitOnError)             //删除区块链
 	CmdInit := flag.NewFlagSet("init", flag.ExitOnError)                 //初始化区块链

@@ -1,15 +1,24 @@
 package database
 
-import "os"
+import (
+	"fmt"
+	"os"
+)
 
 //数据库文件
-const DbFile = "database/blockchain.database"
+var DbFile string
 
 //数据仓库
-const BlockBucket = "blocks"
+var BlockBucket string
 
 //UTXO数据桶
-const UTXOBucket = "utxo"
+var UTXOBucket string
+
+func GenerateDatabase(nodeID string) {
+	DbFile = fmt.Sprintf("database/NODE-%s.database", nodeID)
+	BlockBucket = "blocks"
+	UTXOBucket = "utxo"
+}
 
 func DbExist() bool {
 	_, err := os.Stat(DbFile)

@@ -21,7 +21,11 @@ type Chain struct {
 }
 
 //创世区块链
-func InitBlockChain(to string) *Chain {
+func InitBlockChain(address string) *Chain {
+	//根据nodeID生成数据库名
+
+	fmt.Printf("数据库文件生成成功，存储位置为%s\n", database.DbFile)
+
 	var lastHash []byte
 
 	db, err := bolt.Open(database.DbFile, 0600, nil)
@@ -35,7 +39,7 @@ func InitBlockChain(to string) *Chain {
 		if b == nil {
 			fmt.Println("Creating the genesis block.....")
 			//创世区块集成交易
-			coinbaseTx := NewCoinBaseTX(to)
+			coinbaseTx := NewCoinBaseTX(address)
 			genesisBlock := NewGenesisBlock(coinbaseTx)
 			//bucket不存在，创建一个桶
 			b, err := tx.CreateBucket([]byte(database.BlockBucket))
