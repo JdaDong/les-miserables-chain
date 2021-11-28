@@ -32,7 +32,8 @@ func (cli *CLI) Run() {
 		os.Exit(1)
 	}
 	fmt.Printf("当前运行节点：%s\n", nodeID)
-	database.GenerateDatabase(nodeID)
+	database.GenerateDatabase(nodeID) //生成节点数据库
+
 	CmdPrintChain := flag.NewFlagSet("printchain", flag.ExitOnError)     //打印区块链
 	CmdDelete := flag.NewFlagSet("delete", flag.ExitOnError)             //删除区块链
 	CmdInit := flag.NewFlagSet("init", flag.ExitOnError)                 //初始化区块链
@@ -40,6 +41,7 @@ func (cli *CLI) Run() {
 	CmdSendToken := flag.NewFlagSet("send", flag.ExitOnError)            //转账
 	CmdCreateWallet := flag.NewFlagSet("createwallet", flag.ExitOnError) //创建钱包
 	CmdAddressLists := flag.NewFlagSet("addresslists", flag.ExitOnError) //获取所有钱包地址
+	CmdStartNode := flag.NewFlagSet("startnode", flag.ExitOnError)       //启动节点
 
 	cbAddr := CmdInit.String("address", "", "创世区块奖励人")
 	balanceAddr := CmdGetBalance.String("addr", "", "获取指定地址的余额")
@@ -47,6 +49,8 @@ func (cli *CLI) Run() {
 	sendTo := CmdSendToken.String("to", "", "转账目的地址")
 	sendAmount := CmdSendToken.String("amount", "", "转账金额")
 	sendMine := CmdSendToken.Bool("mine", false, "是否启用本地节点验证")
+	MinerAddress := CmdStartNode.String("miner", "", "挖矿奖励的地址")
+
 	switch os.Args[1] {
 	case "printchain":
 		err := CmdPrintChain.Parse(os.Args[2:])
@@ -80,6 +84,11 @@ func (cli *CLI) Run() {
 		}
 	case "addresslists":
 		err := CmdAddressLists.Parse(os.Args[2:])
+		if err != nil {
+			log.Panic(err)
+		}
+	case "startnode":
+		err := CmdStartNode.Parse(os.Args[2:])
 		if err != nil {
 			log.Panic(err)
 		}
@@ -135,5 +144,12 @@ func (cli *CLI) Run() {
 	}
 	if CmdAddressLists.Parsed() {
 		cli.addresslists()
+	}
+	if CmdStartNode.Parsed() {
+		if *MinerAddress == "" {
+			cli.printUsage()
+			os.Exit(1)
+		}
+		cli.startNode(nodeID, *MinerAddress)
 	}
 }
