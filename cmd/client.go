@@ -46,7 +46,7 @@ func (cli *CLI) Run() {
 	sendFrom := CmdSendToken.String("from", "", "转账源地址")
 	sendTo := CmdSendToken.String("to", "", "转账目的地址")
 	sendAmount := CmdSendToken.String("amount", "", "转账金额")
-
+	sendMine := CmdSendToken.Bool("mine", false, "是否启用本地节点验证")
 	switch os.Args[1] {
 	case "printchain":
 		err := CmdPrintChain.Parse(os.Args[2:])
@@ -128,7 +128,7 @@ func (cli *CLI) Run() {
 			}
 		}
 		amount := utils.JsonToArray(*sendAmount)
-		cli.sendToken(from, to, amount)
+		cli.sendToken(from, to, amount, *sendMine)
 	}
 	if CmdCreateWallet.Parsed() {
 		cli.createWallet()
