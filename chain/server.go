@@ -8,18 +8,19 @@ import (
 	"net"
 )
 
-var knowNodes = []string{"localhost:3300"} //3300主节点地址
+var knowNodes = []string{"localhost:3000"} //3000主节点地址
 
 var nodeAddress string //节点地址
 
 func StartServer(nodeID string, miner string) {
 	nodeAddress = fmt.Sprintf("localhost:%s", nodeID)
 	listener, err := net.Listen("tcp", nodeAddress)
+	fmt.Println(nodeAddress)
 	if err != nil {
 		log.Panic(err)
 	}
 	defer listener.Close()
-	//非主节点，需要通阿伯
+	//非主节点，需要同步
 	if nodeAddress != knowNodes[0] {
 		sendMessage(knowNodes[0], nodeAddress)
 	}
@@ -38,6 +39,7 @@ func StartServer(nodeID string, miner string) {
 
 }
 
+//客户端向服务器发送消息
 func sendMessage(to string, from string) {
 	fmt.Println("客户端向服务器发送数据.......")
 	conn, err := net.Dial("tcp", to)
