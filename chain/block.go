@@ -9,6 +9,7 @@ import (
 
 //区块信息
 type Block struct {
+	Height           int64
 	BlockTimestamp   int64
 	BlockPreHash     []byte
 	Transactions     []*Transaction
@@ -48,8 +49,9 @@ func DeserializeBlock(d []byte) *Block {
 }
 
 //生成区块
-func NewBlock(transactions []*Transaction, preBlockHash []byte) *Block {
+func NewBlock(transactions []*Transaction, height int64, preBlockHash []byte) *Block {
 	block := &Block{
+		Height:           height,
 		BlockTimestamp:   time.Now().UnixNano() / 1e6, //精确到毫秒
 		BlockPreHash:     preBlockHash,
 		Transactions:     transactions,
@@ -70,7 +72,7 @@ func NewGenesisBlock(coinbaseTX *Transaction) *Block {
 	for i := 0; i < 32; i++ {
 		preBlockHash[i] = 0
 	}
-	return NewBlock([]*Transaction{coinbaseTX}, preBlockHash)
+	return NewBlock([]*Transaction{coinbaseTX}, 1, preBlockHash)
 }
 
 //拼接所有交易 生成hash值

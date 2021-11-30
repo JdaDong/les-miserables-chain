@@ -242,7 +242,7 @@ func (chain *Chain) MineBlock(from []string, to []string, amount []string) error
 		txs0 = append(txs0, tx)
 	}
 	//3.根据当前区块构建新的区块
-	block = NewBlock(txs, block.BlockCurrentHash)
+	block = NewBlock(txs, block.Height, block.BlockCurrentHash)
 
 	err = chain.DB.Update(func(tx *bolt.Tx) error {
 		b := tx.Bucket([]byte(database.BlockBucket))

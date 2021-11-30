@@ -33,6 +33,7 @@ func (cli *CLI) printChain() {
 			b := tx.Bucket([]byte(database.BlockBucket))
 			blockBytes := b.Get(blockchainIterator.CurrentHash)
 			block := chain.DeserializeBlock(blockBytes)
+			fmt.Printf("Height：%d\n", block.Height)
 			fmt.Printf("Coinbase Address：%v \n", block.Transactions[0].TxOutputs[0].ScriptPubKey)
 			fmt.Printf("Transactions：%v\n", block.Transactions)
 			fmt.Printf("PrevBlockHash：%x \n", block.BlockPreHash)

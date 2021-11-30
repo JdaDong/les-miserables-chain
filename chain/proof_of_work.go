@@ -27,6 +27,7 @@ func (pow *ProofOfWork) prepareData(nonce int64) []byte {
 		utils.IntToHex(pow.block.BlockTimestamp),
 		utils.IntToHex(int64(targetOffset)),
 		utils.IntToHex(nonce),
+		utils.IntToHex(pow.block.Height),
 	},
 		[]byte{},
 	)
