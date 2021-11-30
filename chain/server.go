@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"io"
+	"les-miserables-chain/utils"
 	"log"
 	"net"
 )
@@ -20,9 +21,10 @@ func StartServer(nodeID string, miner string) {
 		log.Panic(err)
 	}
 	defer listener.Close()
+	bc := BlockchainObject()
 	//非主节点，需要同步
 	if nodeAddress != knowNodes[0] {
-		sendMessage(knowNodes[0], nodeAddress)
+		sendVersion(knowNodes[0], bc)
 	}
 	//接受客户端消息
 	for {
@@ -39,15 +41,26 @@ func StartServer(nodeID string, miner string) {
 
 }
 
+func sendVersion(toAddress string, bc *Chain) {
+	bestHeight := 1
+	payload := utils.GobEncode(Version{
+		Version:    1, //节点版本 硬编码为1
+		BestHeight: bestHeight,
+		AddrFrom:   nodeAddress,
+	})
+	requestMsg := append(utils.CommandTobytes("version"), payload...)
+	sendMessage(toAddress, requestMsg)
+}
+
 //客户端向服务器发送消息
-func sendMessage(to string, from string) {
+func sendMessage(to string, msg []byte) {
 	fmt.Println("客户端向服务器发送数据.......")
 	conn, err := net.Dial("tcp", to)
 	if err != nil {
 		log.Panic(err)
 	}
 	defer conn.Close()
-	_, err = io.Copy(conn, bytes.NewReader([]byte(from)))
+	_, err = io.Copy(conn, bytes.NewReader([]byte(msg)))
 	if err != nil {
 		log.Panic(err)
 	}
