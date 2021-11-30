@@ -1,6 +1,8 @@
 package utils
 
 import (
+	"bytes"
+	"encoding/gob"
 	"encoding/json"
 	"log"
 	"strconv"
@@ -32,4 +34,24 @@ func JsonToArray(jsonString string) []string {
 		log.Panic(err)
 	}
 	return sArr
+}
+
+//消息命令转字节数组
+func CommandTobytes(command string) []byte {
+	var bytes [12]byte //命令长度硬编码为12
+	for i, cmd := range command {
+		bytes[i] = byte(cmd)
+	}
+	return bytes[:]
+}
+
+//结构体序列化
+func GobEncode(data interface{}) []byte {
+	var buff bytes.Buffer
+	enc := gob.NewEncoder(&buff)
+	err := enc.Encode(data)
+	if err != nil {
+		log.Panic(err)
+	}
+	return buff.Bytes()
 }
