@@ -41,8 +41,9 @@ func StartServer(nodeID string, miner string) {
 
 }
 
+//发送版本信息
 func sendVersion(toAddress string, bc *Chain) {
-	bestHeight := 1
+	bestHeight := bc.GetHighestHeight() //硬编码
 	payload := utils.GobEncode(Version{
 		Version:    1, //节点版本 硬编码为1
 		BestHeight: bestHeight,

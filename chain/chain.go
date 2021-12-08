@@ -373,3 +373,9 @@ func (chain *Chain) FindUTXOMap() map[string]*TXOutputs {
 	return utxoMaps
 
 }
+
+//获取最高区块高度
+func (bc *Chain) GetHighestHeight() int64 {
+	block := bc.Iterator().NextBlock()
+	return block.Height
+}
