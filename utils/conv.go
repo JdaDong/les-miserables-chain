@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/gob"
 	"encoding/json"
+	"fmt"
 	"log"
 	"strconv"
 	"time"
@@ -37,12 +38,23 @@ func JsonToArray(jsonString string) []string {
 }
 
 //消息命令转字节数组
-func CommandTobytes(command string) []byte {
+func MessageTobytes(command string) []byte {
 	var bytes [12]byte //命令长度硬编码为12
 	for i, cmd := range command {
 		bytes[i] = byte(cmd)
 	}
 	return bytes[:]
+}
+
+//字节数组转消息命令
+func BytesToMessage(bytes []byte) string {
+	var command []byte
+	for _, b := range bytes {
+		if b != 0x00 {
+			command = append(command, b)
+		}
+	}
+	return fmt.Sprintf("%s", command)
 }
 
 //结构体序列化
