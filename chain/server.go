@@ -1,10 +1,7 @@
 package chain
 
 import (
-	"bytes"
 	"fmt"
-	"io"
-	"les-miserables-chain/utils"
 	"log"
 	"net"
 )
@@ -32,94 +29,7 @@ func StartServer(nodeID string, miner string) {
 		if err != nil {
 			log.Panic(err)
 		}
-		//request, err := io.ReadAll(conn)
-		//if err != nil {
-		//	log.Panic(err)
-		//}
-		//fmt.Printf("Receive a Message:%s\n", request)
 		go handleMessage(conn, bc)
 	}
-
-}
-
-//发送版本信息
-func sendVersion(toAddress string, bc *Chain) {
-	bestHeight := bc.GetHighestHeight() //硬编码
-	payload := utils.GobEncode(Version{
-		Version:    1, //节点版本 硬编码为1
-		BestHeight: bestHeight,
-		AddrFrom:   nodeAddress,
-	})
-	requestMsg := append(utils.MessageTobytes("version"), payload...)
-	sendMessage(toAddress, requestMsg)
-}
-
-//客户端向服务器发送消息
-func sendMessage(to string, msg []byte) {
-	fmt.Println("客户端向服务器发送数据.......")
-	conn, err := net.Dial("tcp", to)
-	if err != nil {
-		log.Panic(err)
-	}
-	defer conn.Close()
-	_, err = io.Copy(conn, bytes.NewReader([]byte(msg)))
-	if err != nil {
-		log.Panic(err)
-	}
-}
-
-//消息处理
-func handleMessage(conn net.Conn, bc *Chain) {
-	request, err := io.ReadAll(conn)
-	if err != nil {
-		log.Panic(err)
-	}
-	fmt.Printf("Receive a Message:%s\n", request[:12])
-	message := utils.BytesToMessage(request[:12])
-	switch message {
-	case MESSAGE_VERSION:
-		handleVersion(request, bc)
-	case MESSAGE_ADDR:
-		handleAddr(request, bc)
-	case MESSAGE_BLOCK:
-		handleBlock(request, bc)
-	case MESSAGE_GETBLOCKS:
-		handleGetblocks(request, bc)
-	case MESSAGE_GETDATA:
-		handleGetData(request, bc)
-	case MESSAGE_INV:
-		handleInv(request, bc)
-	case MESSAGE_TX:
-		handleTx(request, bc)
-	default:
-		fmt.Println("未知的节点消息!")
-	}
-}
-
-func handleVersion(request []byte, bc *Chain) {
-
-}
-
-func handleAddr(request []byte, bc *Chain) {
-
-}
-
-func handleGetblocks(request []byte, bc *Chain) {
-
-}
-
-func handleGetData(request []byte, bc *Chain) {
-
-}
-
-func handleBlock(request []byte, bc *Chain) {
-
-}
-
-func handleTx(request []byte, bc *Chain) {
-
-}
-
-func handleInv(request []byte, bc *Chain) {
 
 }
