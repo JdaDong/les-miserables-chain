@@ -32,11 +32,12 @@ func StartServer(nodeID string, miner string) {
 		if err != nil {
 			log.Panic(err)
 		}
-		request, err := io.ReadAll(conn)
-		if err != nil {
-			log.Panic(err)
-		}
-		fmt.Printf("Receive a Message:%s\n", request)
+		//request, err := io.ReadAll(conn)
+		//if err != nil {
+		//	log.Panic(err)
+		//}
+		//fmt.Printf("Receive a Message:%s\n", request)
+		go handleMessage(conn, bc)
 	}
 
 }
@@ -49,7 +50,7 @@ func sendVersion(toAddress string, bc *Chain) {
 		BestHeight: bestHeight,
 		AddrFrom:   nodeAddress,
 	})
-	requestMsg := append(utils.CommandTobytes("version"), payload...)
+	requestMsg := append(utils.MessageTobytes("version"), payload...)
 	sendMessage(toAddress, requestMsg)
 }
 
@@ -65,4 +66,60 @@ func sendMessage(to string, msg []byte) {
 	if err != nil {
 		log.Panic(err)
 	}
+}
+
+//消息处理
+func handleMessage(conn net.Conn, bc *Chain) {
+	request, err := io.ReadAll(conn)
+	if err != nil {
+		log.Panic(err)
+	}
+	fmt.Printf("Receive a Message:%s\n", request[:12])
+	message := utils.BytesToMessage(request[:12])
+	switch message {
+	case MESSAGE_VERSION:
+		handleVersion(request, bc)
+	case MESSAGE_ADDR:
+		handleAddr(request, bc)
+	case MESSAGE_BLOCK:
+		handleBlock(request, bc)
+	case MESSAGE_GETBLOCKS:
+		handleGetblocks(request, bc)
+	case MESSAGE_GETDATA:
+		handleGetData(request, bc)
+	case MESSAGE_INV:
+		handleInv(request, bc)
+	case MESSAGE_TX:
+		handleTx(request, bc)
+	default:
+		fmt.Println("未知的节点消息!")
+	}
+}
+
+func handleVersion(request []byte, bc *Chain) {
+
+}
+
+func handleAddr(request []byte, bc *Chain) {
+
+}
+
+func handleGetblocks(request []byte, bc *Chain) {
+
+}
+
+func handleGetData(request []byte, bc *Chain) {
+
+}
+
+func handleBlock(request []byte, bc *Chain) {
+
+}
+
+func handleTx(request []byte, bc *Chain) {
+
+}
+
+func handleInv(request []byte, bc *Chain) {
+
 }
