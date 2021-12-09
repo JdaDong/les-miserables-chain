@@ -379,3 +379,18 @@ func (bc *Chain) GetHighestHeight() int64 {
 	block := bc.Iterator().NextBlock()
 	return block.Height
 }
+
+func (bc *Chain) GetBlockHashes() [][]byte {
+	blockIterator := bc.Iterator()
+	var blockHashes [][]byte
+	for {
+		block := blockIterator.NextBlock()
+		blockHashes = append(blockHashes, block.BlockCurrentHash)
+		var hashInt big.Int
+		hashInt.SetBytes(block.BlockPreHash)
+		if hashInt.Cmp(big.NewInt(0)) == 0 {
+			break
+		}
+	}
+	return blockHashes
+}

@@ -23,7 +23,7 @@ func handleVersion(request []byte, bc *Chain) {
 	if highestHeight > foreignerHighestHeight {
 		sendVersion(payload.AddrFrom, bc)
 	} else if highestHeight < foreignerHighestHeight {
-
+		sendGetBlocks(payload.AddrFrom)
 	}
 }
 
@@ -32,7 +32,18 @@ func handleAddr(request []byte, bc *Chain) {
 }
 
 func handleGetblocks(request []byte, bc *Chain) {
+	var buff bytes.Buffer
+	var payload Version
+	dataBytes := request[12:]
 
+	buff.Write(dataBytes)
+	dec := gob.NewDecoder(&buff)
+	err := dec.Decode(&payload)
+	if err != nil {
+		log.Panic(err)
+	}
+	blocks := bc.GetBlockHashes()
+	sendInv(payload.AddrFrom, "block", blocks)
 }
 
 func handleGetData(request []byte, bc *Chain) {
