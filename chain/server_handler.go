@@ -95,4 +95,21 @@ func handleTx(request []byte, bc *Chain) {
 func handleInv(request []byte, bc *Chain) {
 	var buff bytes.Buffer
 	var payload Inv
+
+	dataBytes := request[12:]
+	buff.Write(dataBytes)
+	dec := gob.NewDecoder(&buff)
+	err := dec.Decode(&payload)
+	if err != nil {
+		log.Panic(err)
+	}
+
+	if payload.Type == "block" {
+		blockHash := payload.Items[0]
+		sendGetData(payload.AddrFrom, "block", blockHash)
+	}
+	if payload.Type == "tx" {
+
+	}
+
 }

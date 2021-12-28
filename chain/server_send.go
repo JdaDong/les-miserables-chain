@@ -45,6 +45,15 @@ func sendBlock(toAddress string, block *Block) {
 	sendMessage(toAddress, request)
 }
 
+func sendGetData(toAddress string, kind string, blockHash []byte) {
+
+	payload := utils.GobEncode(GetData{nodeAddress, kind, blockHash})
+
+	request := append(utils.MessageTobytes(MESSAGE_GETDATA), payload...)
+
+	sendMessage(toAddress, request)
+}
+
 //客户端向服务器发送消息
 func sendMessage(to string, msg []byte) {
 	fmt.Println("客户端向服务器发送数据.......")
