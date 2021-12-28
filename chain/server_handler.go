@@ -47,6 +47,26 @@ func handleGetblocks(request []byte, bc *Chain) {
 }
 
 func handleGetData(request []byte, bc *Chain) {
+	var buff bytes.Buffer
+	var payload GetData
+
+	dataBytes := request[12:]
+	buff.Write(dataBytes)
+	dec := gob.NewDecoder(&buff)
+	err := dec.Decode(&payload)
+	if err != nil {
+		log.Panic(err)
+	}
+	if payload.Type == "block" {
+		block, err := bc.GetBock([]byte(payload.Hash))
+		if err != nil {
+			return
+		}
+		sendBlock(payload.AddrFrom, block)
+	}
+	if payload.Type == "tx" {
+
+	}
 
 }
 

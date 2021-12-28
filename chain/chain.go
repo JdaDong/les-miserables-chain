@@ -380,6 +380,7 @@ func (bc *Chain) GetHighestHeight() int64 {
 	return block.Height
 }
 
+//获取所有区块Hash
 func (bc *Chain) GetBlockHashes() [][]byte {
 	blockIterator := bc.Iterator()
 	var blockHashes [][]byte
@@ -393,4 +394,18 @@ func (bc *Chain) GetBlockHashes() [][]byte {
 		}
 	}
 	return blockHashes
+}
+
+//获取区块
+func (bc *Chain) GetBock(blockHash []byte) (*Block, error) {
+	var block *Block
+	err := bc.DB.View(func(tx *bolt.Tx) error {
+		b := tx.Bucket([]byte(database.BlockBucket))
+		if b != nil {
+			blockBytes := b.Get(blockHash)
+			block = DeserializeBlock(blockBytes)
+		}
+		return nil
+	})
+	return block, err
 }

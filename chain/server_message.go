@@ -36,6 +36,17 @@ type Inv struct {
 	Items    [][]byte //hash二维数组
 }
 
+type GetData struct {
+	AddrFrom string
+	Type     string
+	Hash     []byte
+}
+
+type BlockData struct {
+	AddrFrom string
+	Block    *Block
+}
+
 //消息处理
 func handleMessage(conn net.Conn, bc *Chain) {
 	request, err := io.ReadAll(conn)

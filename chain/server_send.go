@@ -29,8 +29,6 @@ func sendGetBlocks(toAddress string) {
 }
 
 // 主节点将自己的所有的区块hash发送给钱包节点
-//COMMAND_BLOCK
-//
 func sendInv(toAddress string, kind string, hashes [][]byte) {
 
 	payload := utils.GobEncode(Inv{nodeAddress, kind, hashes})
@@ -39,6 +37,12 @@ func sendInv(toAddress string, kind string, hashes [][]byte) {
 
 	sendMessage(toAddress, request)
 
+}
+
+func sendBlock(toAddress string, block *Block) {
+	payload := utils.GobEncode(BlockData{nodeAddress, block})
+	request := append(utils.MessageTobytes(MESSAGE_BLOCK), payload...)
+	sendMessage(toAddress, request)
 }
 
 //客户端向服务器发送消息
