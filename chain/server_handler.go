@@ -86,6 +86,10 @@ func handleBlock(request []byte, bc *Chain) {
 	if err != nil {
 		log.Panic(err)
 	}
+	if len(transactionArry) > 0 {
+		sendGetData(payload.AddrFrom, "block", transactionArry[0])
+		transactionArry = transactionArry[1:]
+	}
 }
 
 func handleTx(request []byte, bc *Chain) {
@@ -107,6 +111,9 @@ func handleInv(request []byte, bc *Chain) {
 	if payload.Type == "block" {
 		blockHash := payload.Items[0]
 		sendGetData(payload.AddrFrom, "block", blockHash)
+		if len(payload.Items) >= 1 {
+			transactionArry = payload.Items[1:]
+		}
 	}
 	if payload.Type == "tx" {
 

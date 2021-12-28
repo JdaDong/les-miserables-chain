@@ -10,6 +10,8 @@ var knowNodes = []string{"localhost:3000"} //3000主节点地址
 
 var nodeAddress string //节点地址
 
+var transactionArry [][]byte
+
 func StartServer(nodeID string, miner string) {
 	nodeAddress = fmt.Sprintf("localhost:%s", nodeID)
 	listener, err := net.Listen("tcp", nodeAddress)
