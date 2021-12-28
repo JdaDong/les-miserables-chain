@@ -86,10 +86,15 @@ func handleBlock(request []byte, bc *Chain) {
 	if err != nil {
 		log.Panic(err)
 	}
+	if len(transactionArry) == 0 {
+		utxoRecord := &UTXORecord{Blockchain: bc}
+		utxoRecord.ResetUTXORecord()
+	}
 	if len(transactionArry) > 0 {
 		sendGetData(payload.AddrFrom, "block", transactionArry[0])
 		transactionArry = transactionArry[1:]
 	}
+
 }
 
 func handleTx(request []byte, bc *Chain) {
