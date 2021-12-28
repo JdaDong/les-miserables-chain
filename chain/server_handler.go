@@ -71,7 +71,21 @@ func handleGetData(request []byte, bc *Chain) {
 }
 
 func handleBlock(request []byte, bc *Chain) {
+	var buff bytes.Buffer
+	var payload BlockData
+	dataBytes := request[12:]
 
+	buff.Write(dataBytes)
+	dec := gob.NewDecoder(&buff)
+	err := dec.Decode(&payload)
+	if err != nil {
+		log.Panic(err)
+	}
+	block := payload.Block
+	err = bc.AddBlock(block)
+	if err != nil {
+		log.Panic(err)
+	}
 }
 
 func handleTx(request []byte, bc *Chain) {
@@ -79,5 +93,6 @@ func handleTx(request []byte, bc *Chain) {
 }
 
 func handleInv(request []byte, bc *Chain) {
-
+	var buff bytes.Buffer
+	var payload Inv
 }

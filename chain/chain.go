@@ -409,3 +409,29 @@ func (bc *Chain) GetBock(blockHash []byte) (*Block, error) {
 	})
 	return block, err
 }
+
+//增加区块
+func (bc *Chain) AddBlock(block *Block) error {
+	err := bc.DB.Update(func(tx *bolt.Tx) error {
+		b := tx.Bucket([]byte(database.BlockBucket))
+		if b != nil {
+			blockExist := b.Get(block.BlockCurrentHash)
+			if blockExist != nil {
+				return nil
+			}
+			err := b.Put(block.BlockCurrentHash, Serialize(block))
+			if err != nil {
+				log.Panic(err)
+			}
+			blockHash := b.Get([]byte("last"))
+			blockBytes := b.Get(blockHash)
+			currentBlock := DeserializeBlock(blockBytes)
+			if currentBlock.Height < block.Height {
+				_ = b.Put([]byte("last"), block.BlockCurrentHash)
+			}
+		}
+		return nil
+
+	})
+	return err
+}
