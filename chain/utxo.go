@@ -49,13 +49,13 @@ func (chain *Chain) UnUTXOs(address string, txs []*Transaction) []*UTXO {
 					for hash, indexArray := range spentTXOutputs {
 						txHashStr := hex.EncodeToString(tx.TxHash)
 						if hash == txHashStr {
-							var isUnSpentUTXO bool
+							var isSpentUTXO bool
 							for _, outIndex := range indexArray {
 								if index == outIndex {
-									isUnSpentUTXO = true
+									isSpentUTXO = true
 									continue Work1
 								}
-								if isUnSpentUTXO == false {
+								if isSpentUTXO == false {
 									utxo := &UTXO{tx.TxHash, index, out}
 									unUTXOs = append(unUTXOs, utxo)
 								}
